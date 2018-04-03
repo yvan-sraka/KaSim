@@ -382,3 +382,114 @@ let add_bridges
     Nodearray.free_all parameters error scc
   in
   error, low, pre, on_stack, scc, bridges
+
+
+
+  (*.........*)
+
+(*fonction qui retire les sous-listes qui contiennent seulement 1 element*)
+
+let remove_one_element_list l =
+   let p l = match l with | [_] -> true | [] | _::_::_ -> false
+  in
+  List.filter (fun x -> not (p x)) l
+
+
+
+  let tabb parameter error (sl:node list) (dim:node)=
+    let error, array = Fixed_size_array.init parameter error dim (fun parameter error _ -> error, false) in
+    let error, array =
+      List.fold_left
+        (fun (error, array) x ->
+           Fixed_size_array.set parameter error x true array
+        )
+        (error, array) sl
+    in
+    error, array
+
+
+    let filter_graph parameters error graphEdges tabbool =
+      (*pour chaque element du tab de booleen*)
+      let fonc parameters error graph key data =
+        if data then
+          begin
+            match
+              Nodearray.unsafe_get parameters error key graph
+            with
+            | error, None -> error, graph
+            | error, Some nod_ed_Lis  ->
+              (*donc la on est à chaque fois sur une liste*)
+            (*si n = vrai alors on va garder que les noeuds associés à vrai *)
+              let istrue parameters error tabbool nod_ed  =
+                Nodearray.unsafe_get parameters error (fst nod_ed) tabbool
+              (*utiliser list . filter pour le supprimer de la liste : problem a lenvers : on supprime
+                pas de la liste mais on retourne la liste qui correspond a vrai ?
+                filter : if x n'est pas ds le tableau  *)
+              in
+     (*la on est que sur la list ( correspondant à une clef donnée...), donc on va supprimer les elements pour cette liste... *)
+              let error, new_nod_ed_Lis =
+                List.fold_left
+                  (fun (error, list) elt ->
+                     let error, istrue = istrue parameters error tabbool elt in
+                     match
+                       istrue
+                     with
+                     | None ->
+                       Exception.warn parameters error __POS__ Exit list
+                     | Some true ->
+                       error, elt::list
+                     | Some false -> error,list
+                  )
+                  (error,[])
+                  (List.rev nod_ed_Lis)
+              in
+              match new_nod_ed_Lis with
+              | [] ->
+                Nodearray.free parameters error key graph
+              | _::_ as l
+                ->
+                Nodearray.set parameters error key l graph
+                  (* filter p l returns all the elements of the list l that satisfy
+                 the predicate p. The order of the elements in the input list is preserved.
+                 so Here we wants to delete the elements that???*)
+          end
+        else
+          Nodearray.free parameters error key graph (*AVERIF*)
+      in Nodearray.fold parameters error
+        (fun parameters error key data graphEdges -> fonc parameters error graphEdges key data )
+        tabbool graphEdges
+
+
+
+        let edgeList_onesuccess parameters error graphEdges key =
+          (*element de comparaison*)
+
+          let element= key    (*PROBLEME ?*)
+
+        (*on initalise la boucle*)
+        (*first element*)
+        in
+        (*for each key*)
+        (*RECUPERER LA LISTE DE NOEUD???*)
+        let rec conslis parameters error graphEdges lis element key =
+
+          let error, edg_lis = Nodearray.unsafe_get parameters error key graphEdges in
+          (*match la list avec *)
+          match edg_lis with
+          | None ->
+           Exception.warn parameters error __POS__ Exit lis
+          | Some [_::_] -> error,lis
+          (*if only one element, add this element to the list and continu with that element as the key*)
+          | Some [(x,_)]-> if key != element then
+              conslis parameters error graphEdges (x :: lis) element x
+            else
+              error, List.rev (x :: lis)
+
+              in lis = []
+
+
+    let graph = (* ... *) ()
+
+    let f graph = (*....*) ()
+
+    let _ = f ();;
