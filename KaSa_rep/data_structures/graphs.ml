@@ -464,7 +464,7 @@ let remove_one_element_list l =
         let edgeList_onesuccess parameters error graphEdges key =
           (*element de comparaison*)
 
-          let element= key    (*PROBLEME ?*)
+          let element,lis= key,[]    (*PROBLEME ?*)
 
         (*on initalise la boucle*)
         (*first element*)
@@ -476,17 +476,20 @@ let remove_one_element_list l =
           let error, edg_lis = Nodearray.unsafe_get parameters error key graphEdges in
           (*match la list avec *)
           match edg_lis with
-          | None ->
+          | None->
            Exception.warn parameters error __POS__ Exit lis
-          | Some [_::_] -> error,lis
           (*if only one element, add this element to the list and continu with that element as the key*)
-          | Some [(x,_)]-> if key != element then
+          | Some []->error,lis
+          | Some [(x,_)::[]]->
+          if key != element then
               conslis parameters error graphEdges (x :: lis) element x
             else
               error, List.rev (x :: lis)
 
-              in lis = []
+          |Some [_::_::_]->
+          error,lis
 
+              in element,lis
 
     let graph = (* ... *) ()
 
