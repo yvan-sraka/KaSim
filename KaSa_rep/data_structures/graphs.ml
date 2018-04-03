@@ -481,7 +481,7 @@ let remove_one_element_list l =
           (*if only one element, add this element to the list and continu with that element as the key*)
           | Some []->error,lis
           | Some [(x,_)::[]]->
-          if key != element then
+          if x != element then
               conslis parameters error graphEdges (x :: lis) element x
             else
               error, List.rev (x :: lis)
