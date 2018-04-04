@@ -477,19 +477,22 @@ let remove_one_element_list l =
           (*match la list avec *)
           match edg_lis with
           | None->
-           Exception.warn parameters error __POS__ Exit lis
+           Exception.warn parameters error __POS__ Exit None
           (*if only one element, add this element to the list and continu with that element as the key*)
-          | Some []->error,lis
-          | Some [(x,_)::[]]->
+          | Some []->
+          Exception.warn parameters error __POS__ Exit None
+          | Some [x,_] ->
           if x != element then
               conslis parameters error graphEdges (x :: lis) element x
             else
-              error, List.rev (x :: lis)
+              error, Some (List.rev (x :: lis))
 
-          |Some [_::_::_]->
-          error,lis
+          |Some (_::_::_)->
+          error,None
 
-              in element,lis
+
+    in
+    conslis parameters error graphEdges lis element key
 
     let graph = (* ... *) ()
 
