@@ -385,9 +385,9 @@ let add_bridges
 
 
 
-  (*.........*)
+(*cycle detection, keep only components connex?*)
 
-(*fonction qui retire les sous-listes qui contiennent seulement 1 element*)
+(* remove sub list that contains only one element*)
 
 let remove_one_element_list l =
    let p l = match l with | [_] -> true | [] | _::_::_ -> false
@@ -395,7 +395,9 @@ let remove_one_element_list l =
   List.filter (fun x -> not (p x)) l
 
 
-
+(*AJOUTER UNE BOUCLE !!! for each list*)
+(*create a array of boolean: when the node is in the list return true,
+ false otherwise*)
   let tabb parameter error (sl:node list) (dim:node)=
     let error, array = Fixed_size_array.init parameter error dim (fun parameter error _ -> error, false) in
     let error, array =
@@ -407,9 +409,10 @@ let remove_one_element_list l =
     in
     error, array
 
+  (*keep only the nodes that are in the sub graph*)
 
     let filter_graph parameters error graphEdges tabbool =
-      (*pour chaque element du tab de booleen*)
+      (*for each element of the booelan array*)
       let fonc parameters error graph key data =
         if data then
           begin
@@ -494,7 +497,31 @@ let remove_one_element_list l =
     in
     conslis parameters error graphEdges lis element key
 
-    let graph = (* ... *) ()
+
+(*tests*)
+(*NODE LABEL A DEFINIR*)
+
+    let graph =
+
+    let errors = Exception.empty_error_handler in
+    let _, parameters, _ = Get_option.get_option errors in
+
+    let nodelabel,
+    listnode,
+     listedge
+    = [0;1;2;3],
+    [ (0:node); (1:node); (2:node); (3:node)],
+    [ ((0:node),0,(1:node));
+     ((1:node),1,(2:node)); ((2:node),2,(3:node)); ((3:node),3,(0:node))]
+
+     in create
+     parameters  errors
+     nodelabel
+    listnode
+     listedge
+
+
+
 
     let f graph = (*....*) ()
 
