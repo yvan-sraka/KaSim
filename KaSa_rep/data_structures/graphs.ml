@@ -499,7 +499,7 @@ let remove_one_element_list l =
 
 
 (*tests*)
-(*NODE LABEL A DEFINIR ... EN COURS*)
+(* ... EN COURS....*)
 
     let graph =
 
@@ -523,6 +523,22 @@ let remove_one_element_list l =
 
 
 
-    let f graph = (*....*) ()
+    let f graph = (* tout d'abord copute_scc pour avoir les composant connex et récupérer
+    une liste de liste de noeud du graph qui sont connectés*) (
 
-    let _ = f ();;
+    let errors = Exception.empty_error_handler in
+    let _, parameters, _ = Get_option.get_option errors in
+    let error,
+     _low, _pre,
+     _on_stack,
+     scc =
+     compute_scc
+      parameters
+      errors
+      (fun () -> "")
+       graph
+        in remove_one_element_list  scc
+
+    )
+
+    let _ = f;;
