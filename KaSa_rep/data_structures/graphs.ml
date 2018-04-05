@@ -528,7 +528,7 @@ let remove_one_element_list l =
 
     let errors = Exception.empty_error_handler in
     let _, parameters, _ = Get_option.get_option errors in
-    let error,
+    let errors,
      _low, _pre,
      _on_stack,
      scc =
@@ -537,8 +537,15 @@ let remove_one_element_list l =
       errors
       (fun () -> "")
        graph
-        in remove_one_element_list  scc
+        in errors,remove_one_element_list scc
 
     )
 
-    let _ = f;;
+    let _=
+
+    let errors, newgraph =
+    f(* problem: expression unit, a' int* devrait vouloir a' b' graph)
+    graph(* problem: expression int int*)
+    in
+    printf.printf newgraph
+    ;;
