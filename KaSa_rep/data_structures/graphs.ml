@@ -499,7 +499,7 @@ let remove_one_element_list l =
 
 
 (*tests*)
-(*NODE LABEL A DEFINIR*)
+(*NODE LABEL A DEFINIR ... EN COURS*)
 
     let graph =
 
@@ -509,7 +509,7 @@ let remove_one_element_list l =
     let nodelabel,
     listnode,
      listedge
-    = [0;1;2;3],
+    = (fun x -> int_of_node x ),
     [ (0:node); (1:node); (2:node); (3:node)],
     [ ((0:node),0,(1:node));
      ((1:node),1,(2:node)); ((2:node),2,(3:node)); ((3:node),3,(0:node))]
