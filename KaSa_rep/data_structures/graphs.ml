@@ -525,7 +525,7 @@ let remove_one_element_list l =
 
 
 
-    let f graph = (* tout d'abord copute_scc pour avoir les composant connex et récupérer
+    let f graph = (* tout d'abord compute_scc pour avoir les composant connex et récupérer
     une liste de liste de noeud du graph qui sont connectés*) (
 
     let errors = Exception.empty_error_handler in
@@ -544,12 +544,16 @@ let remove_one_element_list l =
     )
 
     let _=
-
+    let errors = Exception.empty_error_handler in
+    let _, parameters, _ = Get_option.get_option errors in
     let errors, newgraph =
     f
     agraph
    in
-    Printf.printf
-    
+    Nodearray.fold parameters errors( fun l ->
+     (Nodearray.print
+       parameters errors
+       l
+        array) )
     newgraph
-    ;;
+  ;;
