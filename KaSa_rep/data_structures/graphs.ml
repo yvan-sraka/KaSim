@@ -541,11 +541,37 @@ let remove_one_element_list l =
 
     )
 
-    let _=
+    (*let _=
 
     let errors, newgraph =
-    f(* problem: expression unit, a' int* devrait vouloir a' b' graph)
-    graph(* problem: expression int int*)
+    f(* problem: expression unit, a' int* devrait vouloir a' b' graph)*)
+    graph (* problem: expression int int*)
     in
-    printf.printf newgraph
+    Printf.printf newgraph
     ;;
+    regarder %a ...*)
+
+(*TEST AVEC %a
+    let f =let g = [[];[(1:node);(2:node);(4:node)];[(2:node);(4:node)];[(7:node)]] in
+    let h=
+    remove_one_element_list g
+    in  List.iter ( List.iter
+    (Printf.printf "HERE !!!!!!!! %a ") l
+     )
+    h;;
+*)
+
+    let f = Printf.printf "HERE !!!!!!! %i " 2;;
+  (*  let g = [[];[(1:node);(2:node);(4:node)];[(2:node);(4:node)];[(7:node)]] in
+    let h=
+    remove_one_element_list g
+    in
+    let lh =
+    List.map(fun cc->(
+    List.map
+    (fun x -> int_of_node x)
+     cc))h
+
+    in  List.iter ( fun l -> List.iter
+    (Printf.printf "HERE !!!!!!!! %i ") l)
+    lh;;*)
