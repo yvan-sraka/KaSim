@@ -560,9 +560,8 @@ let remove_one_element_list l =
      )
     h;;
 *)
-
-    let f = Printf.printf "HERE !!!!!!! %i " 2;;
-  (*  let g = [[];[(1:node);(2:node);(4:node)];[(2:node);(4:node)];[(7:node)]] in
+let f=
+   let g = [[];[(1:node);(2:node);(4:node)];[(2:node);(4:node)];[(7:node)]] in
     let h=
     remove_one_element_list g
     in
@@ -573,5 +572,5 @@ let remove_one_element_list l =
      cc))h
 
     in  List.iter ( fun l -> List.iter
-    (Printf.printf "HERE !!!!!!!! %i ") l)
-    lh;;*)
+    (Printf.printf " %i ") l)
+    lh;;
