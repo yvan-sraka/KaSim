@@ -501,7 +501,7 @@ let remove_one_element_list l =
 (*tests*)
 (* ... EN COURS....*)
 
-    let graph =
+    let agraph =
 
     let errors = Exception.empty_error_handler in
     let _, parameters, _ = Get_option.get_option errors in
@@ -509,8 +509,10 @@ let remove_one_element_list l =
     let nodelabel,
     listnode,
      listedge
-    = (fun x -> int_of_node x ),
+    = (fun _->  () ),
+
     [ (0:node); (1:node); (2:node); (3:node)],
+
     [ ((0:node),0,(1:node));
      ((1:node),1,(2:node)); ((2:node),2,(3:node)); ((3:node),3,(0:node))]
 
@@ -541,36 +543,13 @@ let remove_one_element_list l =
 
     )
 
-    (*let _=
+    let _=
 
     let errors, newgraph =
-    f(* problem: expression unit, a' int* devrait vouloir a' b' graph)*)
-    graph (* problem: expression int int*)
-    in
-    Printf.printf newgraph
+    f
+    agraph
+   in
+    Printf.printf
+    
+    newgraph
     ;;
-    regarder %a ...*)
-
-(*TEST AVEC %a
-    let f =let g = [[];[(1:node);(2:node);(4:node)];[(2:node);(4:node)];[(7:node)]] in
-    let h=
-    remove_one_element_list g
-    in  List.iter ( List.iter
-    (Printf.printf "HERE !!!!!!!! %a ") l
-     )
-    h;;
-*)
-let f=
-   let g = [[];[(1:node);(2:node);(4:node)];[(2:node);(4:node)];[(7:node)]] in
-    let h=
-    remove_one_element_list g
-    in
-    let lh =
-    List.map(fun cc->(
-    List.map
-    (fun x -> int_of_node x)
-     cc))h
-
-    in  List.iter ( fun l -> List.iter
-    (Printf.printf " %i ") l)
-    lh;;
