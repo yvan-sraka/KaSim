@@ -457,7 +457,7 @@ let remove_one_element_list l =
                  so Here we wants to delete the elements that???*)
           end
         else
-          Nodearray.free parameters error key graph (*AVERIF*)
+          Nodearray.free parameters error key graph
       in Nodearray.fold parameters error
         (fun parameters error key data graphEdges -> fonc parameters error graphEdges key data )
         tabbool graphEdges
@@ -526,7 +526,7 @@ let edgeList_onesuccess parameters error graphEdges key =
 
 
 let f graph = (* tout d'abord compute_scc pour avoir les composant connex et récupérer
-                 une liste de liste de noeud du graph qui sont connectés*) (
+                 une liste de liste de noeud du graph qui sont connectés*)
 
   let errors = Exception.empty_error_handler in
   let _, parameters, _ = Get_option.get_option errors in
@@ -541,56 +541,64 @@ let f graph = (* tout d'abord compute_scc pour avoir les composant connex et ré
       graph
   in errors,remove_one_element_list scc
 
-)
+
 
 (*rajout du tab de booelen et impression en mm temps ?*)
 
-let _=
+let _ =
   let errors = Exception.empty_error_handler in
   let _, parameters, _ = Get_option.get_option errors in
 
+  (*on récupère les liste de noeud (cycles) qui ont plus d'un élément *)
+
   let errors,li = f agraph in
 
-  (*let graphtab parameter errors li agraph =*)
-
-  let errors,rdim = agraph.dimension(*dimen = int? on veut node? a verif *)
+  (*let graphtab parameter errors li agraph =  Nodearray.dimension parameters errors agraph.node_labels *)
+  (*on veu récupérer la dimension du graph de départ...how ?*)
+  let errors, rdim =
+    Fixed_size_array.dimension parameters errors agraph.node_labels (*dimen = int? on veut node? a verif *)
 
   in
   (*for each list in li ( the list of list of node) the function will *)
-  let  ite parameters errors eli rdim =
+  let  ite parameters errors rdim eli=
     (* creation du tab de booleen *)
-    let tab_bol = tabb parameters errors ite rdim
+    let errors, tab_bol = tabb parameters errors eli (node_of_int rdim)
 
     in
     (*impression du tableau (c'est la clé qui change et pour chaque cle on va récupérer
       lélément *)
-    let impr parameters errors tab_bol key=
+    let impr parameters errors key e =
       (*ici on récupère  l'element coorespondant a la clef*)
-      let errors, e = Nodearray.unsafe_get parameters errors key tab_bol
+      let ()= Loggers.fprintf (Remanent_parameters.get_logger parameters)
+          "%s%i:" (Remanent_parameters.get_prefix parameters)
+          key
 
       in
       let ()= Loggers.fprintf (Remanent_parameters.get_logger parameters)
-          "%s%i%B:" (Remanent_parameters.get_prefix parameters) key e
+          "%B:"      e
 
       in
-      Nodearray.fold parameters errors (fun key->
-          impr parameters errors
-            tab_bol key) tab_bol
+      errors
+    in
+    let errors =
+      Fixed_size_array.iter parameters errors impr tab_bol
       (*fin de l'impr d'un tableau*)
 
     in
     (*on saute une ligne entre deux tableau*)
     let () =  Loggers.print_newline (Remanent_parameters.get_logger parameters)
     in
-    List.iter (fun parameters error rdim eli
+    ()
+  in
+List.iter (fun eli
                 -> ite
                     parameters
                     errors
+                    rdim
                     eli
-                    rdim)
+              )
       li
 
-;;
 
 
 (*  Loggers.fprintf (Remanent_parameters.get_logger parameters)
@@ -600,7 +608,7 @@ let _=
     let () =
     Loggers.print_newline (Remanent_parameters.get_logger parameters)*)
 
-(*
+    (*
 (*fonction d'impression*)
 
 let _=
@@ -621,4 +629,5 @@ let _=
                       "%s%d:" (Remanent_parameters.get_prefix parameters)  l))*)
                     (Printf.printf " %i ") l)
 
-    newgraph;;*)
+    lh;;(*newgraph*)
+*)
