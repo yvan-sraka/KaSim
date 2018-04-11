@@ -417,14 +417,14 @@ let remove_one_element_list l =
         if data then
           begin
             match
-              Nodearray.unsafe_get parameters error key graph
+              Fixed_size_array.unsafe_get parameters error key graph
             with
             | error, None -> error, graph
             | error, Some nod_ed_Lis  ->
               (*donc la on est à chaque fois sur une liste*)
             (*si n = vrai alors on va garder que les noeuds associés à vrai *)
               let istrue parameters error tabbool nod_ed  =
-                Nodearray.unsafe_get parameters error (fst nod_ed) tabbool
+                Fixed_size_array.unsafe_get parameters error (fst nod_ed) tabbool
               (*utiliser list . filter pour le supprimer de la liste : problem a lenvers : on supprime
                 pas de la liste mais on retourne la liste qui correspond a vrai ?
                 filter : if x n'est pas ds le tableau  *)
@@ -448,17 +448,17 @@ let remove_one_element_list l =
               in
               match new_nod_ed_Lis with
               | [] ->
-                Nodearray.free parameters error key graph
+                Fixed_size_array.free parameters error key graph
               | _::_ as l
                 ->
-                Nodearray.set parameters error key l graph
+                Fixed_size_array.set parameters error key l graph
                   (* filter p l returns all the elements of the list l that satisfy
                  the predicate p. The order of the elements in the input list is preserved.
                  so Here we wants to delete the elements that???*)
           end
         else
-          Nodearray.free parameters error key graph
-      in Nodearray.fold parameters error
+          Fixed_size_array.free parameters error key graph
+      in Fixed_size_array.fold parameters error
         (fun parameters error key data graphEdges -> fonc parameters error graphEdges key data )
         tabbool graphEdges
 
@@ -510,11 +510,10 @@ let edgeList_onesuccess parameters error graphEdges key =
     listnode,
      listedge
     = (fun (x:node)-> x),
-     [ (0:node); (1:node); (2:node); (3:node); (4:node)],
+      [ (0:node); (1:node); (2:node); (3:node)],
 
-     [ ((0:node),0,(1:node));
-      ((1:node),1,(2:node)); ((2:node),2,(3:node)); ((3:node),3,(4:node));
-      ((4:node),4,(1:node))]
+      [ ((0:node),0,(1:node));
+        ((1:node),1,(2:node)); ((2:node),2,(3:node)); ((3:node),3,(0:node))]
 
      in create
      parameters  errors
@@ -575,7 +574,7 @@ let _ =
 
       in
       let ()= Loggers.fprintf (Remanent_parameters.get_logger parameters)
-          "%B:"      e
+          "%B "      e
 
       in
       errors
@@ -585,19 +584,40 @@ let _ =
       (*fin de l'impr d'un tableau*)
 
     in
-    (*on saute une ligne entre deux tableau*)
-    let () =  Loggers.print_newline (Remanent_parameters.get_logger parameters)
+    (*on passe a la fonction qui va supprimer les arrete pour chaque graphes*)
+    (*CHANGER LA FONCTION POUR PRENDRE EN COMPTE LE NODELABEL ET RETOURNER UN GRAPH*)
+    let errors, filgraph = filter_graph parameters errors agraph.edges tab_bol
     in
-    ()
+    let agraph.edges =
+      filgraph
+    in
+    (*impression du graph BUUUG *)
+    let lh =
+      List.map(fun cc->(
+            List.map
+              (fun x -> int_of_node x)
+              cc))agraph.node_labels
+
+    in  List.iter ( fun l -> List.iter
+                      (*(Loggers.fprintf (Remanent_parameters.get_logger parameters)
+                        "%s%d:" (Remanent_parameters.get_prefix parameters)  l))*)
+                      (Printf.printf " %i ")l)
+      lh
+      (*fin de l'impression du grahp*)
   in
-List.iter (fun eli
-                -> ite
-                    parameters
-                    errors
-                    rdim
-                    eli
-              )
-      li
+  (*on saute une ligne entre chaque liste *)
+  let () =  Loggers.print_newline (Remanent_parameters.get_logger parameters)
+
+
+  in
+  List.iter (fun eli
+              -> ite
+                  parameters
+                  errors
+                  rdim
+                  eli
+            )
+    li
 
 
 
