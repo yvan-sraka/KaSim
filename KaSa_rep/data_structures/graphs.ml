@@ -411,61 +411,63 @@ let remove_one_element_list l =
 
   (*keep only the nodes that are in the sub graph*)
 
-    let filter_graph parameters error graph tabbool =
-      (*for each element of the booelan array*)
-      let graphE = graph.edges
-      in
-      let fonc parameters error graphE key data =
-        if data then
-          begin
-            match
-              Fixed_size_array.unsafe_get parameters error key graphE
-            with
-            | error, None -> error, graphE
-            | error, Some nod_ed_Lis  ->
-              (*donc la on est à chaque fois sur une liste*)
-            (*si n = vrai alors on va garder que les noeuds associés à vrai *)
-              let istrue parameters error tabbool nod_ed  =
-                Fixed_size_array.unsafe_get parameters error (fst nod_ed) tabbool
-              (*utiliser list . filter pour le supprimer de la liste : problem a lenvers : on supprime
-                pas de la liste mais on retourne la liste qui correspond a vrai ?
-                filter : if x n'est pas ds le tableau  *)
-              in
-     (*la on est que sur la list ( correspondant à une clef donnée...), donc on va supprimer les elements pour cette liste... *)
-              let error, new_nod_ed_Lis =
-                List.fold_left
-                  (fun (error, list) elt ->
-                     let error, istrue = istrue parameters error tabbool elt in
-                     match
-                       istrue
-                     with
-                     | None ->
-                       Exception.warn parameters error __POS__ Exit list
-                     | Some true ->
-                       error, elt::list
-                     | Some false -> error,list
-                  )
-                  (error,[])
-                  (List.rev nod_ed_Lis)
-              in
-              match new_nod_ed_Lis with
-              | [] ->
-                  Fixed_size_array.free parameters error key graphE 
-                  let () = Fixed_size_array.free parameters error key graph.node_labels
-                  in ()
-              | _::_ as l
-                ->
-                Fixed_size_array.set parameters error key l graphE
-                  (* filter p l returns all the elements of the list l that satisfy
-                 the predicate p. The order of the elements in the input list is preserved.
-                 so Here we wants to delete the elements that???*)
-          end
-        else
-          Fixed_size_array.free parameters error key graphE,
-          Fixed_size_array.free parameters error key graph.node_labels
-      in Fixed_size_array.fold parameters error
-        (fun parameters error key data graphE -> fonc parameters error graphE key data )
-        tabbool graphE
+let filter_graph parameters error graph tabbool =
+  (*for each element of the booelan array*)
+  let fonc parameters error graphE key data =
+    if data then
+      begin
+        match
+          Fixed_size_array.unsafe_get parameters error key graphE
+        with
+        | error, None -> error, graphE
+        | error, Some nod_ed_Lis  ->
+          (*donc la on est à chaque fois sur une liste*)
+          (*si n = vrai alors on va garder que les noeuds associés à vrai *)
+          let istrue parameters error tabbool nod_ed  =
+            Fixed_size_array.unsafe_get parameters error (fst nod_ed) tabbool
+            (*utiliser list . filter pour le supprimer de la liste : problem a lenvers : on supprime
+              pas de la liste mais on retourne la liste qui correspond a vrai ?
+              filter : if x n'est pas ds le tableau  *)
+          in
+          (*la on est que sur la list ( correspondant à une clef donnée...), donc on va supprimer les elements pour cette liste... *)
+          let error, new_nod_ed_Lis =
+            List.fold_left
+              (fun (error, list) elt ->
+                 let error, istrue = istrue parameters error tabbool elt in
+                 match
+                   istrue
+                 with
+                 | None ->
+                   Exception.warn parameters error __POS__ Exit list
+                 | Some true ->
+                   error, elt::list
+                 | Some false -> error,list
+              )
+              (error,[])
+              (List.rev nod_ed_Lis)
+          in
+          match new_nod_ed_Lis with
+          | [] ->
+            begin
+              Fixed_size_array.free parameters error key graphE;
+              Fixed_size_array.free parameters error key graph.node_labels
+            end
+          | _::_ as l
+            ->
+            Fixed_size_array.set parameters error key l graphE
+            (* filter p l returns all the elements of the list l that satisfy
+               the predicate p. The order of the elements in the input list is preserved.
+               so Here we wants to delete the elements that???*)
+      end
+    else begin
+      Fixed_size_array.free parameters error key graphE;
+      Fixed_size_array.free parameters error key graph.node_labels
+    end
+
+  in Fixed_size_array.fold parameters error
+    (fun parameters error key data graphE
+      -> fonc parameters error graphE key data )
+    tabbool graph.edges
 
 
 
@@ -506,25 +508,25 @@ let edgeList_onesuccess parameters error graphEdges key =
 (*tests*)
 (* ... EN COURS....*)
 
-    let agraph =
+let agraph =
 
-    let errors = Exception.empty_error_handler in
-    let _, parameters, _ = Get_option.get_option errors in
+  let errors = Exception.empty_error_handler in
+  let _, parameters, _ = Get_option.get_option errors in
 
-    let nodelabel,
-    listnode,
-     listedge
+  let nodelabel,
+      listnode,
+      listedge
     = (fun (x:node)-> x),
       [ (0:node); (1:node); (2:node); (3:node)],
 
       [ ((0:node),0,(1:node));
         ((1:node),1,(2:node)); ((2:node),2,(3:node)); ((3:node),3,(0:node))]
 
-     in create
-     parameters  errors
-     nodelabel
+  in create
+    parameters  errors
+    nodelabel
     listnode
-     listedge
+    listedge
 
 
 
