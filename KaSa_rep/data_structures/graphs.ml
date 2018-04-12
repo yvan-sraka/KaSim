@@ -411,15 +411,15 @@ let remove_one_element_list l =
 
   (*keep only the nodes that are in the sub graph*)
 
-let filter_graph parameters error graph tabbool =
+let filter_graph parameters error (graph:(node,int) graph) tabbool =
   (*for each element of the booelan array*)
-  let fonc parameters error graphE key data =
+  let fonc parameters error graphE labels key data =
     if data then
       begin
         match
           Fixed_size_array.unsafe_get parameters error key graphE
         with
-        | error, None -> error, graphE
+        | error, None -> error, graphE, labels
         | error, Some nod_ed_Lis  ->
           (*donc la on est à chaque fois sur une liste*)
           (*si n = vrai alors on va garder que les noeuds associés à vrai *)
@@ -449,29 +449,37 @@ let filter_graph parameters error graph tabbool =
           match new_nod_ed_Lis with
           | [] ->
             begin
-              let _=Fixed_size_array.free parameters error key graphE in
+              let error, graphE = Fixed_size_array.free parameters error key graphE in
 
-              let errors=Fixed_size_array.free parameters error key graph.node_labels
-              in errors
+              let error, labels = Fixed_size_array.free parameters error key graph.node_labels
+              in error, graphE, labels
             end
           | _::_ as l
             ->
-            Fixed_size_array.set parameters error key l graphE
+            let error, graphE = Fixed_size_array.set parameters error key l graphE in
+            error, graphE, labels
             (* filter p l returns all the elements of the list l that satisfy
                the predicate p. The order of the elements in the input list is preserved.
                so Here we wants to delete the elements that???*)
       end
     else begin
-      let _=Fixed_size_array.free parameters error key graphE in
-      let errors=Fixed_size_array.free parameters error key graph.node_labels
-      in errors
+      let error, graphE =Fixed_size_array.free parameters error key graphE in
+      let error, labels =Fixed_size_array.free parameters error key graph.node_labels
+      in error, graphE, labels
     end
 
-  in Fixed_size_array.fold parameters error
-    (fun parameters error key data graphE
-      -> fonc parameters error graphE key data )
-    tabbool graph.edges
-
+  in
+  let error, (edges, node_labels) =
+    Fixed_size_array.fold parameters error
+      (fun parameters error key data (graphE, labels)
+        ->
+          let error, graphE, labels =
+            fonc parameters error graphE labels key data
+          in
+          error, (graphE, labels))
+      tabbool (graph.edges, graph.node_labels)
+  in
+  error, {edges ; node_labels}
 
 
 let edgeList_onesuccess parameters error graphEdges key =
@@ -606,7 +614,8 @@ let _ =
       List.map(fun cc->(
             List.map
               (fun x -> int_of_node x)
-              cc))agraph.node_labels
+              cc))
+        agraph.node_labels
 
     in  List.iter ( fun l -> List.iter
                       (*(Loggers.fprintf (Remanent_parameters.get_logger parameters)
