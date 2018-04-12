@@ -411,15 +411,17 @@ let remove_one_element_list l =
 
   (*keep only the nodes that are in the sub graph*)
 
-    let filter_graph parameters error graphEdges tabbool =
+    let filter_graph parameters error graph tabbool =
       (*for each element of the booelan array*)
-      let fonc parameters error graph key data =
+      let graphE = graph.edges
+      in
+      let fonc parameters error graphE key data =
         if data then
           begin
             match
-              Fixed_size_array.unsafe_get parameters error key graph
+              Fixed_size_array.unsafe_get parameters error key graphE
             with
-            | error, None -> error, graph
+            | error, None -> error, graphE
             | error, Some nod_ed_Lis  ->
               (*donc la on est à chaque fois sur une liste*)
             (*si n = vrai alors on va garder que les noeuds associés à vrai *)
@@ -448,19 +450,22 @@ let remove_one_element_list l =
               in
               match new_nod_ed_Lis with
               | [] ->
-                Fixed_size_array.free parameters error key graph
+                  Fixed_size_array.free parameters error key graphE 
+                  let () = Fixed_size_array.free parameters error key graph.node_labels
+                  in ()
               | _::_ as l
                 ->
-                Fixed_size_array.set parameters error key l graph
+                Fixed_size_array.set parameters error key l graphE
                   (* filter p l returns all the elements of the list l that satisfy
                  the predicate p. The order of the elements in the input list is preserved.
                  so Here we wants to delete the elements that???*)
           end
         else
-          Fixed_size_array.free parameters error key graph
+          Fixed_size_array.free parameters error key graphE,
+          Fixed_size_array.free parameters error key graph.node_labels
       in Fixed_size_array.fold parameters error
-        (fun parameters error key data graphEdges -> fonc parameters error graphEdges key data )
-        tabbool graphEdges
+        (fun parameters error key data graphE -> fonc parameters error graphE key data )
+        tabbool graphE
 
 
 
@@ -585,11 +590,9 @@ let _ =
 
     in
     (*on passe a la fonction qui va supprimer les arrete pour chaque graphes*)
-    (*CHANGER LA FONCTION POUR PRENDRE EN COMPTE LE NODELABEL ET RETOURNER UN GRAPH*)
-    let errors, filgraph = filter_graph parameters errors agraph.edges tab_bol
-    in
-    let agraph.edges =
-      filgraph
+    (*CHANGER LA FONCTION POUR PRENDRE EN COMPTE LE NODELABEL ET RETOURNER *)
+    let errors, filgraph = filter_graph parameters errors agraph tab_bol
+
     in
     (*impression du graph BUUUG *)
     let lh =
