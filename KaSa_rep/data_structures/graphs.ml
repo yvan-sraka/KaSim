@@ -449,8 +449,10 @@ let filter_graph parameters error graph tabbool =
           match new_nod_ed_Lis with
           | [] ->
             begin
-              Fixed_size_array.free parameters error key graphE;
-              Fixed_size_array.free parameters error key graph.node_labels
+              let _=Fixed_size_array.free parameters error key graphE in
+
+              let errors=Fixed_size_array.free parameters error key graph.node_labels
+              in errors
             end
           | _::_ as l
             ->
@@ -460,8 +462,9 @@ let filter_graph parameters error graph tabbool =
                so Here we wants to delete the elements that???*)
       end
     else begin
-      Fixed_size_array.free parameters error key graphE;
-      Fixed_size_array.free parameters error key graph.node_labels
+      let _=Fixed_size_array.free parameters error key graphE in
+      let errors=Fixed_size_array.free parameters error key graph.node_labels
+      in errors
     end
 
   in Fixed_size_array.fold parameters error
@@ -593,7 +596,9 @@ let _ =
     in
     (*on passe a la fonction qui va supprimer les arrete pour chaque graphes*)
     (*CHANGER LA FONCTION POUR PRENDRE EN COMPTE LE NODELABEL ET RETOURNER *)
-    let errors, filgraph = filter_graph parameters errors agraph tab_bol
+    let errors, filgraph = filter_graph parameters errors
+        agraph
+        tab_bol
 
     in
     (*impression du graph BUUUG *)
