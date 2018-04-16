@@ -494,22 +494,22 @@ let edgeList_onesuccess parameters error graphEdges key =
   (*RECUPERER LA LISTE DE NOEUD???*)
   let rec conslis parameters error graphEdges lis element key =
 
-    let error, edg_lis = Nodearray.unsafe_get parameters error key graphEdges in
+    let error, edg_lis = Fixed_size_array.unsafe_get parameters error key graphEdges in
     (*match la list avec *)
     match edg_lis with
     | None->
-      Exception.warn parameters error __POS__ Exit None
+      Exception.warn parameters error __POS__ Exit []
     (*if only one element, add this element to the list and continu with that element as the key*)
     | Some []->
-      Exception.warn parameters error __POS__ Exit None
+      Exception.warn parameters error __POS__ Exit []
     | Some [x,_] ->
       if x != element then
         conslis parameters error graphEdges (x :: lis) element x
       else
-        error, Some (List.rev (x :: lis))
+        error,  (List.rev (x :: lis))
 
     |Some (_::_::_)->
-      error,None
+      error,[]
 
 
   in
@@ -528,11 +528,11 @@ let agraph =
       listnode,
       listedge
     = (fun (x:node)-> x),
-      [ (0:node); (1:node); (2:node); (3:node)],
+      [ (0:node); (1:node); (2:node); (3:node); (4:node)],
 
       [ ((0:node),0,(1:node));
-        ((1:node),1,(2:node)); ((2:node),2,(3:node)); ((3:node),3,(0:node))]
-
+        ((1:node),1,(2:node)); ((2:node),2,(3:node)); ((3:node),3,(4:node));
+        ((4:node),4,(1:node))]
   in create
     parameters  errors
     nodelabel
@@ -610,33 +610,69 @@ let _ =
 
     in
     (*impression du graph BUUUG *)
-    let lh =
-      List.map(fun cc->(
-            List.map
-              (fun x -> int_of_node x)
-              cc))
-        agraph.node_labels
+    let tranint parameters errors key el=
+      let ()= Loggers.fprintf (Remanent_parameters.get_logger parameters)
+          " %s%i:" (Remanent_parameters.get_prefix parameters)
+          (int_of_node el)
+      in errors
+    in
+    let errors =
+      Fixed_size_array.iter parameters errors tranint filgraph.node_labels
+    in
+    (* take the first key *)
 
-    in  List.iter ( fun l -> List.iter
-                      (*(Loggers.fprintf (Remanent_parameters.get_logger parameters)
-                        "%s%d:" (Remanent_parameters.get_prefix parameters)  l))*)
-                      (Printf.printf " %i ")l)
-      lh
-      (*fin de l'impression du grahp*)
-  in
-  (*on saute une ligne entre chaque liste *)
-  let () =  Loggers.print_newline (Remanent_parameters.get_logger parameters)
+    (* function edgeList_onesuccess*)
+    let errors, keylis = Fixed_size_array.key_list parameters errors filgraph.node_labels
+    in
+    (* empty list to initiate*)
+    let li=[]
+    in
+    (* create a list with the existing nodes *)
+    let ff k=
+      match Fixed_size_array.unsafe_get parameters errors k filgraph.node_labels
+with
+          |errors,
+           None ->
+           []
+          |errors, Some el -> (List.rev (el::li))
+    in
+    let errors,li = List.fold_left ff keyliste
+    (*problem because the list =none but still exists and maybe the edges key list is inverted ,why?*)
+
+    in
+    let fk = List.hd (ff keylis)
+    in
+    let errors,licycle= edgeList_onesuccess parameters errors
+        filgraph.edges
+        (int_of_node fk)
+
+    in
+
+    let () = List.iter ( fun l ->
+      Loggers.fprintf (Remanent_parameters.get_logger parameters)
+        " humhum %s%i:"(Remanent_parameters.get_prefix parameters)
+        (*(Loggers.fprintf (Remanent_parameters.get_logger parameters)
+          "%s%d:" (Remanent_parameters.get_prefix parameters)  l))*)
+        (int_of_node l))
+      (*keylis*)
+      licycle
+  in ()
+
+in
+
+(*on saute une ligne entre chaque liste *)
+let () =  Loggers.print_newline (Remanent_parameters.get_logger parameters)
 
 
-  in
-  List.iter (fun eli
-              -> ite
-                  parameters
-                  errors
-                  rdim
-                  eli
-            )
-    li
+in
+List.iter (fun eli
+            -> ite
+                parameters
+                errors
+                rdim
+                eli
+          )
+  li
 
 
 
