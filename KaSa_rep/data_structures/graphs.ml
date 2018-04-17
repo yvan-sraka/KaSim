@@ -397,19 +397,19 @@ let remove_one_element_list l =
 
 (*AJOUTER UNE BOUCLE !!! for each list*)
 (*create a array of boolean: when the node is in the list return true,
- false otherwise*)
-  let tabb parameter error (sl:node list) (dim:node)=
-    let error, array = Fixed_size_array.init parameter error dim (fun parameter error _ -> error, false) in
-    let error, array =
-      List.fold_left
-        (fun (error, array) x ->
-           Fixed_size_array.set parameter error x true array
-        )
-        (error, array) sl
-    in
-    error, array
+  false otherwise*)
+let tabb parameter error (sl:node list) (dim:node)=
+  let error, array = Fixed_size_array.init parameter error dim (fun parameter error _ -> error, false) in
+  let error, array =
+    List.fold_left
+      (fun (error, array) x ->
+         Fixed_size_array.set parameter error x true array
+      )
+      (error, array) sl
+  in
+  error, array
 
-  (*keep only the nodes that are in the sub graph*)
+(*keep only the nodes that are in the sub graph*)
 
 let filter_graph parameters error (graph:(node,int) graph) tabbool =
   (*for each element of the booelan array*)
@@ -498,18 +498,18 @@ let edgeList_onesuccess parameters error graphEdges key =
     (*match la list avec *)
     match edg_lis with
     | None->
-      Exception.warn parameters error __POS__ Exit []
+      Exception.warn parameters error __POS__ Exit None
     (*if only one element, add this element to the list and continu with that element as the key*)
     | Some []->
-      Exception.warn parameters error __POS__ Exit []
+      Exception.warn parameters error __POS__ Exit None
     | Some [x,_] ->
       if x != element then
         conslis parameters error graphEdges (x :: lis) element x
       else
-        error,  (List.rev (x :: lis))
+        error, Some(List.rev (x :: lis))
 
     |Some (_::_::_)->
-      error,[]
+      error,None
 
 
   in
@@ -521,20 +521,23 @@ let edgeList_onesuccess parameters error graphEdges key =
 
 let agraph =
 
-  let errors = Exception.empty_error_handler in
-  let _, parameters, _ = Get_option.get_option errors in
+  let error = Exception.empty_error_handler in
+  let _, parameters, _ = Get_option.get_option error in
 
   let nodelabel,
       listnode,
       listedge
     = (fun (x:node)-> x),
-      [ (0:node); (1:node); (2:node); (3:node); (4:node)],
+      [ (0:node); (1:node); (2:node); (3:node); (4:node) ;
+        (5:node); (6:node); (7:node); (8:node)],
 
       [ ((0:node),0,(1:node));
         ((1:node),1,(2:node)); ((2:node),2,(3:node)); ((3:node),3,(4:node));
-        ((4:node),4,(1:node))]
+        ((4:node),4,(5:node));
+        ((5:node),5,(6:node)); ((6:node),6,(7:node)); ((7:node),7,(4:node));
+        ((3:node),8,(8:node)); ((8:node),9,(1:node))]
   in create
-    parameters  errors
+    parameters  error
     nodelabel
     listnode
     listedge
@@ -545,46 +548,46 @@ let agraph =
 let f graph = (* tout d'abord compute_scc pour avoir les composant connex et récupérer
                  une liste de liste de noeud du graph qui sont connectés*)
 
-  let errors = Exception.empty_error_handler in
-  let _, parameters, _ = Get_option.get_option errors in
-  let errors,
+  let error = Exception.empty_error_handler in
+  let _, parameters, _ = Get_option.get_option error in
+  let error,
       _low, _pre,
       _on_stack,
       scc =
     compute_scc
       parameters
-      errors
+      error
       (fun (x:node) -> "x")
       graph
-  in errors,remove_one_element_list scc
+  in error,remove_one_element_list scc
 
 
 
 (*rajout du tab de booelen et impression en mm temps ?*)
 
-let _ =
-  let errors = Exception.empty_error_handler in
-  let _, parameters, _ = Get_option.get_option errors in
+
+let _  =
+  let error = Exception.empty_error_handler in
+  let _, parameters, _ = Get_option.get_option error in
 
   (*on récupère les liste de noeud (cycles) qui ont plus d'un élément *)
 
-  let errors,li = f agraph in
-
-  (*let graphtab parameter errors li agraph =  Nodearray.dimension parameters errors agraph.node_labels *)
+  let error,li = f agraph in
+  (*let graphtab parameter error li agraph =  Nodearray.dimension parameters error agraph.node_labels *)
   (*on veu récupérer la dimension du graph de départ...how ?*)
-  let errors, rdim =
-    Fixed_size_array.dimension parameters errors agraph.node_labels (*dimen = int? on veut node? a verif *)
+  let error, rdim =
+    Fixed_size_array.dimension parameters error agraph.node_labels (*dimen = int? on veut node? a verif *)
 
   in
   (*for each list in li ( the list of list of node) the function will *)
-  let  ite parameters errors rdim eli=
+  let  ite parameters error agraph rdim eli=
     (* creation du tab de booleen *)
-    let errors, tab_bol = tabb parameters errors eli (node_of_int rdim)
+    let error, tab_bol = tabb parameters error eli (node_of_int rdim)
 
     in
     (*impression du tableau (c'est la clé qui change et pour chaque cle on va récupérer
       lélément *)
-    let impr parameters errors key e =
+    let impr parameters error key e =
       (*ici on récupère  l'element coorespondant a la clef*)
       let ()= Loggers.fprintf (Remanent_parameters.get_logger parameters)
           "%s%i:" (Remanent_parameters.get_prefix parameters)
@@ -595,114 +598,98 @@ let _ =
           "%B "      e
 
       in
-      errors
+      error
     in
-    let errors =
-      Fixed_size_array.iter parameters errors impr tab_bol
+    let error =
+      Fixed_size_array.iter parameters error impr tab_bol
       (*fin de l'impr d'un tableau*)
 
     in
+    (*not a problem with the first graph*)
+
     (*on passe a la fonction qui va supprimer les arrete pour chaque graphes*)
     (*CHANGER LA FONCTION POUR PRENDRE EN COMPTE LE NODELABEL ET RETOURNER *)
-    let errors, filgraph = filter_graph parameters errors
+    let error, filgraph = filter_graph parameters error
         agraph
         tab_bol
 
     in
-    (*impression du graph BUUUG *)
-    let tranint parameters errors key el=
+    (*print newgraph*)
+    let tranint parameters error key el=
       let ()= Loggers.fprintf (Remanent_parameters.get_logger parameters)
-          " %s%i:" (Remanent_parameters.get_prefix parameters)
+          "FILTER %s%i:" (Remanent_parameters.get_prefix parameters)
           (int_of_node el)
-      in errors
+      in error
     in
-    let errors =
-      Fixed_size_array.iter parameters errors tranint filgraph.node_labels
+    let error =
+      Fixed_size_array.iter parameters error tranint filgraph.node_labels
     in
+    (*end print newgraph *)
     (* take the first key *)
 
     (* function edgeList_onesuccess*)
-    let errors, keylis = Fixed_size_array.key_list parameters errors filgraph.node_labels
+    let error, keylis = Fixed_size_array.key_list parameters error filgraph.node_labels
     in
-    (* empty list to initiate*)
-    let li=[]
+    let rec find_first_entry get_entry list error =
+      match list with
+      | [] -> error, None
+      | h::t ->
+        begin
+          match get_entry parameters error h with
+          | error, None -> find_first_entry get_entry t error
+          | error, Some _ -> error, Some h
+        end
     in
-    (* create a list with the existing nodes *)
-    let ff k=
-      match Fixed_size_array.unsafe_get parameters errors k filgraph.node_labels
-with
-          |errors,
-           None ->
-           []
-          |errors, Some el -> (List.rev (el::li))
+    let find_first_entry_in_fixed_size_array parameters error keylist array =
+      find_first_entry
+        (fun parameters error key ->
+           Fixed_size_array.unsafe_get parameters error key array)
+        keylist
+        error
     in
-    let errors,li = List.fold_left ff keyliste
-    (*problem because the list =none but still exists and maybe the edges key list is inverted ,why?*)
-
+    (*find the first key *)
+    let first_opt =
+      find_first_entry_in_fixed_size_array parameters error keylis filgraph.node_labels
     in
-    let fk = List.hd (ff keylis)
-    in
-    let errors,licycle= edgeList_onesuccess parameters errors
-        filgraph.edges
-        (int_of_node fk)
-
-    in
-
-    let () = List.iter ( fun l ->
-      Loggers.fprintf (Remanent_parameters.get_logger parameters)
-        " humhum %s%i:"(Remanent_parameters.get_prefix parameters)
-        (*(Loggers.fprintf (Remanent_parameters.get_logger parameters)
-          "%s%d:" (Remanent_parameters.get_prefix parameters)  l))*)
-        (int_of_node l))
-      (*keylis*)
-      licycle
-  in ()
-
-in
-
-(*on saute une ligne entre chaque liste *)
-let () =  Loggers.print_newline (Remanent_parameters.get_logger parameters)
-
-
-in
-List.iter (fun eli
-            -> ite
-                parameters
-                errors
-                rdim
-                eli
-          )
-  li
-
-
-
-(*  Loggers.fprintf (Remanent_parameters.get_logger parameters)
-    "%s%i%B:" (Remanent_parameters.get_prefix parameters) key e
-    (*convertir la clé en int?*)
-    in
-    let () =
-    Loggers.print_newline (Remanent_parameters.get_logger parameters)*)
-
-    (*
-(*fonction d'impression*)
-
-let _=
-  let errors = Exception.empty_error_handler in
-  let _, parameters, _ = Get_option.get_option errors in
-  let errors, newgraph =
-    f
-      agraph
-  in
-  let lh =
-    List.map(fun cc->(
-          List.map
-            (fun x -> int_of_node x)
-            cc))newgraph
-
-  in  List.iter ( fun l -> List.iter
+    let error =
+      match first_opt with
+      | error, None ->  error
+      | error, Some fk  ->
+        let error,licycle =
+          edgeList_onesuccess parameters error
+            filgraph.edges
+            fk
+        in
+        let () =
+          (*match *)
+          match licycle with
+          |  None ->  ()
+          |  Some lis->
+            (*endmat*)
+            List.iter
+              ( fun l ->
+                  Loggers.fprintf (Remanent_parameters.get_logger parameters)
+                    " humhum %s%i:"(Remanent_parameters.get_prefix parameters)
                     (*(Loggers.fprintf (Remanent_parameters.get_logger parameters)
-                      "%s%d:" (Remanent_parameters.get_prefix parameters)  l))*)
-                    (Printf.printf " %i ") l)
+                                "%s%d:" (Remanent_parameters.get_prefix parameters)  l))*)
+                    l)
+              (*keylis*)
+              lis
+        in error
+    in  let () = Loggers.fprintf (Remanent_parameters.get_logger parameters)
+            "    NEW LIST:  "
+            (*on saute une ligne entre chaque liste , doesn't work?*)
+  in
 
-    lh;;(*newgraph*)
-*)
+  ()
+  in
+  List.iter
+    (fun eli
+      -> ite
+          parameters
+          error
+          agraph
+          rdim
+          eli
+    )
+    li
