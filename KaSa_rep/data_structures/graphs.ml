@@ -37,6 +37,66 @@ type ('node_labels,'edge_labels) graph =
     edges: (node * 'edge_labels) list Fixed_size_array.t ;
   }
 
+
+(*copy and print*)
+(*let copy_tab parameter error print tab =
+  (*print function *)
+  let _ = Loggers.fprintf (Remanent_parameters.get_logger parameter)
+      "START COPY \n" in
+
+  let _ =
+    Fixed_size_array.print parameter error
+      print
+      tab in
+  let error, dim = Fixed_size_array.dimension parameter error tab in
+  let error, new_tab = Fixed_size_array.expand_and_copy parameter error tab (dim+1) in
+  let _ =
+    Fixed_size_array.print parameter error
+      print
+      new_tab
+  in
+  error, new_tab
+*)
+(*copy and don't print*)
+  let copy_tab parameter error tab =
+    (*print function *)
+    (*let _ = Loggers.fprintf (Remanent_parameters.get_logger parameter)
+        "START COPY \n" in*)
+
+    let error, dim = Fixed_size_array.dimension parameter error tab in
+    let error, new_tab = Fixed_size_array.expand_and_copy parameter error tab (dim+1) in
+    error, new_tab
+
+
+let print_node =
+    (fun parameters error n ->
+       let () = Loggers.fprintf (Remanent_parameters.get_logger parameters)
+           "%i\n" n       in error)
+let print_edges =
+  (fun parameters error l ->
+     let error =
+       List.fold_left
+       (fun error (n,_) ->
+          let () = Loggers.fprintf (Remanent_parameters.get_logger parameters)
+              "%i-" n in error)
+       error l
+     in
+     let () = Loggers.print_newline (Remanent_parameters.get_logger parameters)
+     in error)
+
+(*copy and print*)
+(*let copy parameters error graph =
+  let error, node_labels = copy_tab parameters error print_node graph.node_labels in
+  let error, edges = copy_tab parameters error print_edges graph.edges in
+  error, {node_labels;edges}
+*)
+(*copy and don't print*)
+let copy parameters error graph =
+  let error, node_labels = copy_tab parameters error graph.node_labels in
+  let error, edges = copy_tab parameters error graph.edges in
+  error, {node_labels;edges}
+
+
 let create parameters error node_of_node_label node_list edge_list =
   let max_node =
     List.fold_left
@@ -411,8 +471,10 @@ let tabb parameter error (sl:node list) (dim:node)=
 
 (*keep only the nodes that are in the sub graph*)
 
+
 let filter_graph parameters error (graph:(node,int) graph) tabbool =
   (*for each element of the booelan array*)
+  let error, graph = copy parameters error graph in
   let fonc parameters error graphE labels key data =
     if data then
       begin
@@ -504,9 +566,9 @@ let edgeList_onesuccess parameters error graphEdges key =
       Exception.warn parameters error __POS__ Exit None
     | Some [x,_] ->
       if x != element then
-        conslis parameters error graphEdges (x :: lis) element x
+        conslis parameters error graphEdges (key :: lis) element x
       else
-        error, Some(List.rev (x :: lis))
+        error, Some(List.rev (key :: lis))
 
     |Some (_::_::_)->
       error,None
@@ -536,6 +598,7 @@ let agraph =
         ((4:node),4,(5:node));
         ((5:node),5,(6:node)); ((6:node),6,(7:node)); ((7:node),7,(4:node));
         ((3:node),8,(8:node)); ((8:node),9,(1:node))]
+
   in create
     parameters  error
     nodelabel
@@ -562,7 +625,6 @@ let f graph = (* tout d'abord compute_scc pour avoir les composant connex et ré
   in error,remove_one_element_list scc
 
 
-
 (*rajout du tab de booelen et impression en mm temps ?*)
 
 
@@ -571,16 +633,26 @@ let _  =
   let _, parameters, _ = Get_option.get_option error in
 
   (*on récupère les liste de noeud (cycles) qui ont plus d'un élément *)
-
   let error,li = f agraph in
   (*let graphtab parameter error li agraph =  Nodearray.dimension parameters error agraph.node_labels *)
   (*on veu récupérer la dimension du graph de départ...how ?*)
+  (*b*)
+  let () =List.iter
+    (fun x -> List.iter (fun x -> Loggers.fprintf (Remanent_parameters.get_logger parameters)
+                            " %s%i:" (Remanent_parameters.get_prefix parameters)
+                            x)x) li
+
+in
+
+  (*END*)
   let error, rdim =
     Fixed_size_array.dimension parameters error agraph.node_labels (*dimen = int? on veut node? a verif *)
 
   in
+
   (*for each list in li ( the list of list of node) the function will *)
-  let  ite parameters error agraph rdim eli=
+  let  ite parameters error firstgraph rdim eli=
+
     (* creation du tab de booleen *)
     let error, tab_bol = tabb parameters error eli (node_of_int rdim)
 
@@ -607,18 +679,21 @@ let _  =
     in
     (*not a problem with the first graph*)
 
-    (*on passe a la fonction qui va supprimer les arrete pour chaque graphes*)
-    (*CHANGER LA FONCTION POUR PRENDRE EN COMPTE LE NODELABEL ET RETOURNER *)
+    (*filter_graph:  delete the egdes that don't appear in the cycle*)
     let error, filgraph = filter_graph parameters error
-        agraph
+        firstgraph
         tab_bol
 
+    in
+
+    let () = Loggers.fprintf (Remanent_parameters.get_logger parameters)
+        " \n FILTER :"
     in
     (*print newgraph*)
     let tranint parameters error key el=
       let ()= Loggers.fprintf (Remanent_parameters.get_logger parameters)
-          "FILTER %s%i:" (Remanent_parameters.get_prefix parameters)
-          (int_of_node el)
+          "%s%i " (Remanent_parameters.get_prefix parameters)
+          el
       in error
     in
     let error =
@@ -627,6 +702,10 @@ let _  =
     (*end print newgraph *)
     (* take the first key *)
 
+
+    let () = Loggers.fprintf (Remanent_parameters.get_logger parameters)
+        " \n edge_list ordered :"
+    in
     (* function edgeList_onesuccess*)
     let error, keylis = Fixed_size_array.key_list parameters error filgraph.node_labels
     in
@@ -669,7 +748,7 @@ let _  =
             List.iter
               ( fun l ->
                   Loggers.fprintf (Remanent_parameters.get_logger parameters)
-                    " humhum %s%i:"(Remanent_parameters.get_prefix parameters)
+                    " %s%i:"(Remanent_parameters.get_prefix parameters)
                     (*(Loggers.fprintf (Remanent_parameters.get_logger parameters)
                                 "%s%d:" (Remanent_parameters.get_prefix parameters)  l))*)
                     l)
@@ -678,7 +757,6 @@ let _  =
         in error
     in  let () = Loggers.fprintf (Remanent_parameters.get_logger parameters)
             "    NEW LIST:  "
-            (*on saute une ligne entre chaque liste , doesn't work?*)
   in
 
   ()

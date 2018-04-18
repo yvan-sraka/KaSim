@@ -97,10 +97,10 @@ module Int_storage_imperatif =
       if dimension < size
       then
         let error,array' = create parameters error size in
-        let _ = Array.blit array.array 0 array'.array 0 dimension in
+        let _ = Array.blit array.array 0 array'.array 0 (dimension+1) in
         error,array'
       else
-        error,{array = Array.sub array.array 0 size ; size = size}
+        error,{array = Array.sub array.array 0 (size+1) ; size = size}
 
     let set parameters error key value array =
       if key>array.size || key<0
