@@ -445,7 +445,7 @@ let add_bridges
 
 
 
-(*cycle detection, keep only components connex?*)
+(*cycle detection, how to detect that each component connex has at most one cycle*)
 
 (* remove sub list that contains only one element*)
 
@@ -455,7 +455,6 @@ let remove_one_element_list l =
   List.filter (fun x -> not (p x)) l
 
 
-(*AJOUTER UNE BOUCLE !!! for each list*)
 (*create a array of boolean: when the node is in the list return true,
   false otherwise*)
 let tabb parameter error (sl:node list) (dim:node)=
@@ -469,11 +468,9 @@ let tabb parameter error (sl:node list) (dim:node)=
   in
   error, array
 
-(*keep only the nodes that are in the sub graph*)
-
-
+(*keep only nodes that are in the sub list return a graph with those nodes *)
 let filter_graph parameters error (graph:(node,int) graph) tabbool =
-  (*for each element of the booelan array*)
+  (*for each element of the boolean array*)
   let error, graph = copy parameters error graph in
   let fonc parameters error graphE labels key data =
     if data then
@@ -483,15 +480,9 @@ let filter_graph parameters error (graph:(node,int) graph) tabbool =
         with
         | error, None -> error, graphE, labels
         | error, Some nod_ed_Lis  ->
-          (*donc la on est à chaque fois sur une liste*)
-          (*si n = vrai alors on va garder que les noeuds associés à vrai *)
           let istrue parameters error tabbool nod_ed  =
             Fixed_size_array.unsafe_get parameters error (fst nod_ed) tabbool
-            (*utiliser list . filter pour le supprimer de la liste : problem a lenvers : on supprime
-              pas de la liste mais on retourne la liste qui correspond a vrai ?
-              filter : if x n'est pas ds le tableau  *)
           in
-          (*la on est que sur la list ( correspondant à une clef donnée...), donc on va supprimer les elements pour cette liste... *)
           let error, new_nod_ed_Lis =
             List.fold_left
               (fun (error, list) elt ->
@@ -520,9 +511,6 @@ let filter_graph parameters error (graph:(node,int) graph) tabbool =
             ->
             let error, graphE = Fixed_size_array.set parameters error key l graphE in
             error, graphE, labels
-            (* filter p l returns all the elements of the list l that satisfy
-               the predicate p. The order of the elements in the input list is preserved.
-               so Here we wants to delete the elements that???*)
       end
     else begin
       let error, graphE =Fixed_size_array.free parameters error key graphE in
@@ -543,25 +531,20 @@ let filter_graph parameters error (graph:(node,int) graph) tabbool =
   in
   error, {edges ; node_labels}
 
+(*in the graph, make sure that each egde has only one successor and if so returns
+  the list of edge in the right order
+  take in argument the graph filtered and the first key with an non empty element*)
 
 let edgeList_onesuccess parameters error graphEdges key =
-  (*element de comparaison*)
-
-  let element,lis= key,[]    (*PROBLEME ?*)
-
-  (*on initalise la boucle*)
-  (*first element*)
+  let element,lis= key,[]
   in
   (*for each key*)
-  (*RECUPERER LA LISTE DE NOEUD???*)
   let rec conslis parameters error graphEdges lis element key =
-
     let error, edg_lis = Fixed_size_array.unsafe_get parameters error key graphEdges in
-    (*match la list avec *)
     match edg_lis with
     | None->
       Exception.warn parameters error __POS__ Exit None
-    (*if only one element, add this element to the list and continu with that element as the key*)
+    (*if only one element, add the key to the list and continu with that element as the key*)
     | Some []->
       Exception.warn parameters error __POS__ Exit None
     | Some [x,_] ->
@@ -572,14 +555,79 @@ let edgeList_onesuccess parameters error graphEdges key =
 
     |Some (_::_::_)->
       error,None
-
-
   in
   conslis parameters error graphEdges lis element key
 
 
-(*tests*)
-(* ... EN COURS....*)
+(* for each list (that contain more than one element)
+   make sure the list has only one cycle and return the list of edges of this cycle
+*)
+let for_each_list_find_egdesList parameters error graph rdim li =
+  (*for each list in li ( the list of list of node) *)
+  let  ite parameters error firstgraph rdim eli=
+    (* creation of the booelean array *)
+    let error, tab_bol = tabb parameters error eli (node_of_int rdim)
+    in
+    (*filter_graph:  delete egdes that don't appear in the cycle*)
+    let error, filgraph = filter_graph parameters error
+        firstgraph
+        tab_bol
+    in
+    (* find the first key for function edgeList_onesuccess*)
+    let error, keylis = Fixed_size_array.key_list parameters error filgraph.node_labels
+    in
+    let rec find_first_entry get_entry list error =
+      match list with
+      | [] -> error, None
+      | h::t ->
+        begin
+          match get_entry parameters error h with
+          | error, None -> find_first_entry get_entry t error
+          | error, Some _ -> error, Some h
+        end
+    in
+    let find_first_entry_in_fixed_size_array parameters error keylist array =
+      find_first_entry
+        (fun parameters error key ->
+           Fixed_size_array.unsafe_get parameters error key array)
+        keylist
+        error
+    in
+    let first_opt =
+      find_first_entry_in_fixed_size_array parameters error keylis filgraph.node_labels
+    in
+    let error,lis =
+      match first_opt with
+      | error, None ->  error,[]
+      | error, Some fk  ->
+        let error,licycle =
+          edgeList_onesuccess parameters error
+            filgraph.edges
+            fk
+        in
+        let lis =
+          match licycle with
+          |  None ->  []
+          |  Some lis->
+            lis
+        in error, lis
+    in lis
+
+  in
+  (*use list.map to return the list of results *)
+  List.map
+    (fun eli
+      -> ite
+          parameters
+          error
+          graph
+          rdim
+          eli
+    )
+    li
+
+(* test function ( create the graph and two functions)*)
+(*  has to be put optionnal... EN COURS....*)
 
 let agraph =
 
@@ -606,7 +654,7 @@ let agraph =
     listedge
 
 
-
+(*compute_scc on a graph and remove form the list that contain only one element*)
 
 let f graph = (* tout d'abord compute_scc pour avoir les composant connex et récupérer
                  une liste de liste de noeud du graph qui sont connectés*)
@@ -625,9 +673,7 @@ let f graph = (* tout d'abord compute_scc pour avoir les composant connex et ré
   in error,remove_one_element_list scc
 
 
-(*rajout du tab de booelen et impression en mm temps ?*)
-
-
+(* test function *)
 let _  =
   let error = Exception.empty_error_handler in
   let _, parameters, _ = Get_option.get_option error in
@@ -636,138 +682,16 @@ let _  =
   let error,li = f agraph in
   (*let graphtab parameter error li agraph =  Nodearray.dimension parameters error agraph.node_labels *)
   (*on veu récupérer la dimension du graph de départ...how ?*)
-  (*b*)
-  let () =List.iter
-    (fun x -> List.iter (fun x -> Loggers.fprintf (Remanent_parameters.get_logger parameters)
-                            " %s%i:" (Remanent_parameters.get_prefix parameters)
-                            x)x) li
-
-in
-
-  (*END*)
   let error, rdim =
     Fixed_size_array.dimension parameters error agraph.node_labels (*dimen = int? on veut node? a verif *)
 
   in
-
-  (*for each list in li ( the list of list of node) the function will *)
-  let  ite parameters error firstgraph rdim eli=
-
-    (* creation du tab de booleen *)
-    let error, tab_bol = tabb parameters error eli (node_of_int rdim)
-
-    in
-    (*impression du tableau (c'est la clé qui change et pour chaque cle on va récupérer
-      lélément *)
-    let impr parameters error key e =
-      (*ici on récupère  l'element coorespondant a la clef*)
-      let ()= Loggers.fprintf (Remanent_parameters.get_logger parameters)
-          "%s%i:" (Remanent_parameters.get_prefix parameters)
-          key
-
-      in
-      let ()= Loggers.fprintf (Remanent_parameters.get_logger parameters)
-          "%B "      e
-
-      in
-      error
-    in
-    let error =
-      Fixed_size_array.iter parameters error impr tab_bol
-      (*fin de l'impr d'un tableau*)
-
-    in
-    (*not a problem with the first graph*)
-
-    (*filter_graph:  delete the egdes that don't appear in the cycle*)
-    let error, filgraph = filter_graph parameters error
-        firstgraph
-        tab_bol
-
-    in
-
-    let () = Loggers.fprintf (Remanent_parameters.get_logger parameters)
-        " \n FILTER :"
-    in
-    (*print newgraph*)
-    let tranint parameters error key el=
-      let ()= Loggers.fprintf (Remanent_parameters.get_logger parameters)
-          "%s%i " (Remanent_parameters.get_prefix parameters)
-          el
-      in error
-    in
-    let error =
-      Fixed_size_array.iter parameters error tranint filgraph.node_labels
-    in
-    (*end print newgraph *)
-    (* take the first key *)
-
-
-    let () = Loggers.fprintf (Remanent_parameters.get_logger parameters)
-        " \n edge_list ordered :"
-    in
-    (* function edgeList_onesuccess*)
-    let error, keylis = Fixed_size_array.key_list parameters error filgraph.node_labels
-    in
-    let rec find_first_entry get_entry list error =
-      match list with
-      | [] -> error, None
-      | h::t ->
-        begin
-          match get_entry parameters error h with
-          | error, None -> find_first_entry get_entry t error
-          | error, Some _ -> error, Some h
-        end
-    in
-    let find_first_entry_in_fixed_size_array parameters error keylist array =
-      find_first_entry
-        (fun parameters error key ->
-           Fixed_size_array.unsafe_get parameters error key array)
-        keylist
-        error
-    in
-    (*find the first key *)
-    let first_opt =
-      find_first_entry_in_fixed_size_array parameters error keylis filgraph.node_labels
-    in
-    let error =
-      match first_opt with
-      | error, None ->  error
-      | error, Some fk  ->
-        let error,licycle =
-          edgeList_onesuccess parameters error
-            filgraph.edges
-            fk
-        in
-        let () =
-          (*match *)
-          match licycle with
-          |  None ->  ()
-          |  Some lis->
-            (*endmat*)
-            List.iter
-              ( fun l ->
-                  Loggers.fprintf (Remanent_parameters.get_logger parameters)
-                    " %s%i:"(Remanent_parameters.get_prefix parameters)
-                    (*(Loggers.fprintf (Remanent_parameters.get_logger parameters)
-                                "%s%d:" (Remanent_parameters.get_prefix parameters)  l))*)
-                    l)
-              (*keylis*)
-              lis
-        in error
-    in  let () = Loggers.fprintf (Remanent_parameters.get_logger parameters)
-            "    NEW LIST:  "
+  let result  = for_each_list_find_egdesList parameters error agraph rdim li
   in
-
-  ()
-  in
+  (*impression de la liste de list*)
   List.iter
-    (fun eli
-      -> ite
-          parameters
-          error
-          agraph
-          rdim
-          eli
-    )
-    li
+    (fun x ->
+       let ()= Loggers.print_newline (Remanent_parameters.get_logger parameters) in
+       List.iter (fun x -> Loggers.fprintf (Remanent_parameters.get_logger parameters)
+                            "%s%i:" (Remanent_parameters.get_prefix parameters)
+                            x)x) result
