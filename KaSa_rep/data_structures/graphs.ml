@@ -626,37 +626,10 @@ let for_each_list_find_egdesList parameters error graph rdim li =
     )
     li
 
-(* test function ( create the graph and two functions)*)
-(*  has to be put optionnal... EN COURS....*)
-
-let agraph =
-
-  let error = Exception.empty_error_handler in
-  let _, parameters, _ = Get_option.get_option error in
-
-  let nodelabel,
-      listnode,
-      listedge
-    = (fun (x:node)-> x),
-      [ (0:node); (1:node); (2:node); (3:node); (4:node) ;
-        (5:node); (6:node); (7:node); (8:node)],
-
-      [ ((0:node),0,(1:node));
-        ((1:node),1,(2:node)); ((2:node),2,(3:node)); ((3:node),3,(4:node));
-        ((4:node),4,(5:node));
-        ((5:node),5,(6:node)); ((6:node),6,(7:node)); ((7:node),7,(4:node));
-        ((3:node),8,(8:node)); ((8:node),9,(1:node))]
-
-  in create
-    parameters  error
-    nodelabel
-    listnode
-    listedge
-
 
 (*compute_scc on a graph and remove form the list that contain only one element*)
 
-let f graph = (* tout d'abord compute_scc pour avoir les composant connex et récupérer
+let compute_scc_and_remove_one_element_list  graph = (* tout d'abord compute_scc pour avoir les composant connex et récupérer
                  une liste de liste de noeud du graph qui sont connectés*)
 
   let error = Exception.empty_error_handler in
@@ -673,25 +646,51 @@ let f graph = (* tout d'abord compute_scc pour avoir les composant connex et ré
   in error,remove_one_element_list scc
 
 
-(* test function *)
+(* test function : run if local_trace = true*)
+
 let _  =
-  let error = Exception.empty_error_handler in
-  let _, parameters, _ = Get_option.get_option error in
+  if local_trace then
+    let error = Exception.empty_error_handler in
+    let _, parameters, _ = Get_option.get_option error in
 
-  (*on récupère les liste de noeud (cycles) qui ont plus d'un élément *)
-  let error,li = f agraph in
-  (*let graphtab parameter error li agraph =  Nodearray.dimension parameters error agraph.node_labels *)
-  (*on veu récupérer la dimension du graph de départ...how ?*)
-  let error, rdim =
-    Fixed_size_array.dimension parameters error agraph.node_labels (*dimen = int? on veut node? a verif *)
+    let agraph =
 
-  in
-  let result  = for_each_list_find_egdesList parameters error agraph rdim li
-  in
-  (*impression de la liste de list*)
-  List.iter
-    (fun x ->
-       let ()= Loggers.print_newline (Remanent_parameters.get_logger parameters) in
-       List.iter (fun x -> Loggers.fprintf (Remanent_parameters.get_logger parameters)
-                            "%s%i:" (Remanent_parameters.get_prefix parameters)
-                            x)x) result
+      let error = Exception.empty_error_handler in
+      let _, parameters, _ = Get_option.get_option error in
+
+      let nodelabel,
+          listnode,
+          listedge
+        = (fun (x:node)-> x),
+          [ (0:node); (1:node); (2:node); (3:node); (4:node) ;
+            (5:node); (6:node); (7:node); (8:node)],
+
+          [ ((0:node),0,(1:node));
+            ((1:node),1,(2:node)); ((2:node),2,(3:node)); ((3:node),3,(4:node));
+            ((4:node),4,(5:node));
+            ((5:node),5,(6:node)); ((6:node),6,(7:node)); ((7:node),7,(4:node));
+            ((3:node),8,(8:node)); ((8:node),9,(1:node))]
+
+      in create
+        parameters  error
+        nodelabel
+        listnode
+        listedge
+    in
+    (*on récupère les liste de noeud (cycles) qui ont plus d'un élément *)
+    let error,li = compute_scc_and_remove_one_element_list agraph in
+    (*let graphtab parameter error li agraph =  Nodearray.dimension parameters error agraph.node_labels *)
+    (*on veu récupérer la dimension du graph de départ...how ?*)
+    let error, rdim =
+      Fixed_size_array.dimension parameters error agraph.node_labels (*dimen = int? on veut node? a verif *)
+
+    in
+    let result  = for_each_list_find_egdesList parameters error agraph rdim li
+    in
+    (*impression de la liste de list*)
+    List.iter
+      (fun x ->
+         let ()= Loggers.print_newline (Remanent_parameters.get_logger parameters) in
+         List.iter (fun x -> Loggers.fprintf (Remanent_parameters.get_logger parameters)
+                       "%s%i:" (Remanent_parameters.get_prefix parameters)
+                       x)x) result
