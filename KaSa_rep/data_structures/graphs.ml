@@ -629,8 +629,7 @@ let for_each_list_find_egdesList parameters error graph rdim li =
 
 (*compute_scc on a graph and remove form the list that contain only one element*)
 
-let compute_scc_and_remove_one_element_list  graph = (* tout d'abord compute_scc pour avoir les composant connex et récupérer
-                 une liste de liste de noeud du graph qui sont connectés*)
+let compute_scc_and_remove_one_element_list  graph =
 
   let error = Exception.empty_error_handler in
   let _, parameters, _ = Get_option.get_option error in
@@ -645,8 +644,50 @@ let compute_scc_and_remove_one_element_list  graph = (* tout d'abord compute_scc
       graph
   in error,remove_one_element_list scc
 
+(*
+*******************************
+mixture to graph
+*******************************
+*)
 
-(* test function : run if local_trace = true*)
+let mixture_to_graph parameters error (mix :mixture) =
+  (*initiate list for the graph *)
+  let nodelabel = (fun (x:node)-> x) in
+  let (listnode : node list) = [] in
+  let (listedge : (node * int * node) list )= [] in
+
+
+  let agentmap = cckappa_sig.mixture.bonds in
+
+  (*for each agent in agentmap ... IN PROGRESS ... *)
+
+  (*copy key list into list of node*)
+
+  let parameter, error, listnode = agentmap. .key_list  in
+
+  (*for each site ( key) in agent_type... IN PROGRESS ... *)
+  (*for each site2 (current) in agent_type.execpt the one form the previous loop.. IN PROGRESS ... *)
+  if key = current (*a modifier en
+                     fonction: on parcourt mais doit etre different de celuide bas*)
+       (*Question : what number do I put for the  link?*)
+       listedge = ((key:node),Cckappa_sig.site_address.site,(Cckappa_sig.site_address.agent_index:node)) :: listedege
+  
+
+
+  in create
+    parameters  error
+    nodelabel
+    listnode
+    listedge
+
+
+
+
+
+(********************************
+FUNCTION TEST
+********************************)
+(* test function : run if local_trace = true *)
 
 let _  =
   if local_trace then
@@ -677,17 +718,16 @@ let _  =
         listnode
         listedge
     in
-    (*on récupère les liste de noeud (cycles) qui ont plus d'un élément *)
+
     let error,li = compute_scc_and_remove_one_element_list agraph in
-    (*let graphtab parameter error li agraph =  Nodearray.dimension parameters error agraph.node_labels *)
-    (*on veu récupérer la dimension du graph de départ...how ?*)
+
     let error, rdim =
-      Fixed_size_array.dimension parameters error agraph.node_labels (*dimen = int? on veut node? a verif *)
+      Fixed_size_array.dimension parameters error agraph.node_labels
 
     in
     let result  = for_each_list_find_egdesList parameters error agraph rdim li
     in
-    (*impression de la liste de list*)
+    (*print result *)
     List.iter
       (fun x ->
          let ()= Loggers.print_newline (Remanent_parameters.get_logger parameters) in
