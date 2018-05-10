@@ -650,31 +650,77 @@ mixture to graph
 *******************************
 *)
 
-let mixture_to_graph parameters error (mix :mixture) =
-  (*initiate list for the graph *)
-  let nodelabel = (fun (x:node)-> x) in
+(*give the node corresponding to a site_adresse, allocate one if it doesn't exist *)
+
+let translate parameters error site_address (nodes_to_cpt, cpt_to_nodes,cpt) =
+  match
+    Ckappa_sig.AgentIdSite_map_and_set.Map.find_option_without_logs
+      parameters error
+      site_address nodes_to_cpt
+  with
+  | error, Some a -> error, a, (nodes_to_cpt, cpt_to_nodes,cpt)
+  | error, None ->
+    let error, nodes_to_cpt =
+      Ckappa_sig.AgentIdSite_map_and_set.Map.add parameters error site_address cpt nodes_to_cpt
+    in
+    let cpt_to_nodes =
+      Mods.IntMap.add cpt site_address cpt_to_nodes
+    in
+    error,
+    cpt,
+    (nodes_to_cpt,cpt_to_nodes,cpt+1)
+
+(*transforme a mixture into a graph *)
+let mixture_to_graph parameters error (mixture :Cckappa_sig.mixture) =
+  (*initiate lists for the graph *)
   let (listnode : node list) = [] in
-  let (listedge : (node * int * node) list )= [] in
+  let (listedge : (node * unit * node) list )= [] in
+  let cpt =
+    (Ckappa_sig.AgentIdSite_map_and_set.Map.empty,
+     Mods.IntMap.empty,
+     0)
+  in
+  let agentmap = mixture.Cckappa_sig.bonds in
 
 
-  let agentmap = cckappa_sig.mixture.bonds in
+  let error, (listnode, listedge, cpt) =
+    Ckappa_sig.Agent_id_quick_nearly_Inf_Int_storage_Imperatif.fold
+      parameters error
+      (fun parameters error ag_id map (listnode, listedge, cpt) ->
+         Ckappa_sig.Site_map_and_set.Map.fold
+           (fun site address (error, (listnode, listedge, cpt)) ->
+              let error, node, cpt = translate parameters error (ag_id,site) cpt in
+              let ag_id' = address.Cckappa_sig.agent_index in
+              let site'' = address.Cckappa_sig.site in
+              let error, node'', cpt = translate parameters error (ag_id',site'') cpt in
+              let listnode = node::listnode in
+              Ckappa_sig.Site_map_and_set.Map.fold
+                (fun site' _ (error, (listnode, listedge, cpt)) ->
+                   if site=site' then
+                     (error, (listnode, listedge,  cpt))
+                   else
+                     let error, node',cpt = translate parameters error (ag_id,site') cpt in
+                     (error, (listnode, (node',(),node'')::listedge, cpt))
+                )
+                map
+                (error,
+                 (listnode, listedge, cpt)))
+           map
+           (error,(listnode, listedge, cpt))
+      )
+      agentmap
+      (listnode, listedge, cpt)
 
-  (*for each agent in agentmap ... IN PROGRESS ... *)
-
-  (*copy key list into list of node*)
-
-  let parameter, error, listnode = agentmap. .key_list  in
-
-  (*for each site ( key) in agent_type... IN PROGRESS ... *)
-  (*for each site2 (current) in agent_type.execpt the one form the previous loop.. IN PROGRESS ... *)
-  if key = current (*a modifier en
-                     fonction: on parcourt mais doit etre different de celuide bas*)
-       (*Question : what number do I put for the  link?*)
-       listedge = ((key:node),Cckappa_sig.site_address.site,(Cckappa_sig.site_address.agent_index:node)) :: listedege
-  
-
-
-  in create
+  in
+  let (_,cpt_to_nodes,_) = cpt in
+  let nodelabel =
+    (fun node ->
+       Mods.IntMap.find_default
+        (Ckappa_sig.dummy_agent_id, Ckappa_sig.dummy_site_name)
+        node
+        cpt_to_nodes)
+  in
+  create
     parameters  error
     nodelabel
     listnode

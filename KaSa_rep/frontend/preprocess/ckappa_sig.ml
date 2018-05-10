@@ -1164,6 +1164,7 @@ module Agent_id_quick_nearly_Inf_Int_storage_Imperatif =
      and type dimension = int
   )
 
+
 (***************************************************************************)
 
 module Agent_map_and_set =
@@ -1312,6 +1313,15 @@ module AgentsSiteState_map_and_set =
          type t = c_agent_id * c_agent_name * c_site_name * c_state
          let compare = compare
          let print f (a,b,c,d) = Format.fprintf f "(%i, %i, %i, %i)" a b c d
+       end))
+
+module AgentIdSite_map_and_set =
+  Map_wrapper.Make
+    (SetMap.Make
+       (struct
+         type t = c_agent_id * c_site_name
+         let compare = compare
+         let print f (a,b) = Format.fprintf f "(%i,%i)" a b
        end))
 
 type pair_of_states = c_state option * c_state option
