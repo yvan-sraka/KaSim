@@ -674,7 +674,7 @@ let translate parameters error site_address (nodes_to_cpt, cpt_to_nodes,cpt) =
 let mixture_to_graph parameters error (mixture :Cckappa_sig.mixture) =
   (*initiate lists for the graph *)
   let (listnode : node list) = [] in
-  let (listedge : (node * unit * node) list )= [] in
+  let (listedge : (node * Cckappa_sig.c_site_name * node) list )= [] in
   let cpt =
     (Ckappa_sig.AgentIdSite_map_and_set.Map.empty,
      Mods.IntMap.empty,
@@ -700,7 +700,7 @@ let mixture_to_graph parameters error (mixture :Cckappa_sig.mixture) =
                      (error, (listnode, listedge,  cpt))
                    else
                      let error, node',cpt = translate parameters error (ag_id,site') cpt in
-                     (error, (listnode, (node',(),node'')::listedge, cpt))
+                     (error, (listnode, (node',site,node'')::listedge, cpt))
                 )
                 map
                 (error,
@@ -726,6 +726,38 @@ let mixture_to_graph parameters error (mixture :Cckappa_sig.mixture) =
     listnode
     listedge
 
+(********************************
+from a mixture for each cycle give a list of all edges of this cycle
+********************************)
+
+let give_cycle  parameters error (mixture :Cckappa_sig.mixture) =
+
+  let error,newgraph= mixture_to_graph parameters error mixture in
+
+  let error,lis = compute_scc_and_remove_one_element_list newgraph in
+
+  let error, rdim =
+    Fixed_size_array.dimension parameters error newgraph.node_labels
+
+  in
+  let result  = for_each_list_find_egdesList parameters error agraph rdim lis
+  in
+
+
+  (*IN PROGRESS*)
+  (*translate nodes in c_agent_type *)
+  let ageidsite =  List.rev_map (fun e -> let edg = newgraph.edges.get parameters error e newgraph
+                                  in match edg with
+                                  |(node, edg)->site' in
+      (site', newgraph.node_labels.get parameters error e newgraph)
+    ) (List.rev result) in
+  (*and convert c_agent_type in c_agent_name *)
+List.rev_map (fun e ->
+    match e with
+    |(site', agent_index, site) ->
+      let agent_name = mixture.views.get parameters error agent_index mixture
+      in (site',agent_name,site)
+  ) (List.rev ageidsite)
 
 
 
