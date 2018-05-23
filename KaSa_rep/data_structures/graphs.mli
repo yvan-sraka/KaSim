@@ -45,3 +45,9 @@ val compute_scc :
   ('a, 'b) graph ->
   Exception.method_handler * int Nodearray.t * int Nodearray.t *
   bool Nodearray.t * Nodearray.key list list
+
+  val give_cycle :
+  Remanent_parameters_sig.parameters ->
+  Exception.method_handler->
+  Cckappa_sig.mixture ->
+  Ckappa_sig.c_site_name * Ckappa_sig.c_agent_name * Ckappa_sig.c_site_name list list

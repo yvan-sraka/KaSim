@@ -674,7 +674,8 @@ let translate parameters error site_address (nodes_to_cpt, cpt_to_nodes,cpt) =
 let mixture_to_graph parameters error (mixture :Cckappa_sig.mixture) =
   (*initiate lists for the graph *)
   let (listnode : node list) = [] in
-  let (listedge : (node * Cckappa_sig.c_site_name * node) list )= [] in
+  let (listedge : (node * Ckappa_sig.c_site_name * node) list )= [] in
+
   let cpt =
     (Ckappa_sig.AgentIdSite_map_and_set.Map.empty,
      Mods.IntMap.empty,
@@ -715,10 +716,12 @@ let mixture_to_graph parameters error (mixture :Cckappa_sig.mixture) =
   let (_,cpt_to_nodes,_) = cpt in
   let nodelabel =
     (fun node ->
+      node)
+    (*(fun node ->
        Mods.IntMap.find_default
         (Ckappa_sig.dummy_agent_id, Ckappa_sig.dummy_site_name)
         node
-        cpt_to_nodes)
+        cpt_to_nodes)*)
   in
   create
     parameters  error
@@ -732,7 +735,7 @@ from a mixture for each cycle give a list of all edges of this cycle
 
 let give_cycle  parameters error (mixture :Cckappa_sig.mixture) =
 
-  let error,newgraph= mixture_to_graph parameters error mixture in
+  let newgraph= mixture_to_graph parameters error mixture in
 
   let error,lis = compute_scc_and_remove_one_element_list newgraph in
 
@@ -740,14 +743,15 @@ let give_cycle  parameters error (mixture :Cckappa_sig.mixture) =
     Fixed_size_array.dimension parameters error newgraph.node_labels
 
   in
-  let result  = for_each_list_find_egdesList parameters error agraph rdim lis
+  let result  = for_each_list_find_egdesList parameters error newgraph rdim lis
   in
 
 
   (*IN PROGRESS*)
   (*translate nodes in c_agent_type *)
   let ageidsite =  List.rev_map (fun e -> let edg = newgraph.edges.get parameters error e newgraph
-                                  in match edg with
+                                  in let f edg =
+                                  match edg with
                                   |(node, edg)->site' in
       (site', newgraph.node_labels.get parameters error e newgraph)
     ) (List.rev result) in
