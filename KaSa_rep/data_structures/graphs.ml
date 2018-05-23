@@ -469,7 +469,7 @@ let tabb parameter error (sl:node list) (dim:node)=
   error, array
 
 (*keep only nodes that are in the sub list return a graph with those nodes *)
-let filter_graph parameters error (graph:(node,int) graph) tabbool =
+let filter_graph parameters error graph tabbool =
   (*for each element of the boolean array*)
   let error, graph = copy parameters error graph in
   let fonc parameters error graphE labels key data =
@@ -640,7 +640,9 @@ let compute_scc_and_remove_one_element_list  graph =
     compute_scc
       parameters
       error
-      (fun (x:node) -> "x")
+      (fun (x,y) ->
+         (string_of_int (Ckappa_sig.int_of_agent_id x))^"@"^
+         (string_of_int (Ckappa_sig.int_of_site_name y)))
       graph
   in error,remove_one_element_list scc
 
@@ -716,12 +718,10 @@ let mixture_to_graph parameters error (mixture :Cckappa_sig.mixture) =
   let (_,cpt_to_nodes,_) = cpt in
   let nodelabel =
     (fun node ->
-      node)
-    (*(fun node ->
        Mods.IntMap.find_default
         (Ckappa_sig.dummy_agent_id, Ckappa_sig.dummy_site_name)
         node
-        cpt_to_nodes)*)
+        cpt_to_nodes)
   in
   create
     parameters  error
