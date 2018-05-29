@@ -747,21 +747,82 @@ let give_cycle  parameters error (mixture :Cckappa_sig.mixture) =
   in
 
 
-  (*IN PROGRESS*)
+
   (*translate nodes in c_agent_type *)
-  let ageidsite =  List.rev_map (fun e -> let edg = newgraph.edges.get parameters error e newgraph
-                                  in let f edg =
-                                  match edg with
-                                  |(node, edg)->site' in
-      (site', newgraph.node_labels.get parameters error e newgraph)
-    ) (List.rev result) in
+  let error, sageidsite =
+    List.fold_left
+      (fun (error, main_list) list ->
+         let error, new_list =
+           List.fold_left (fun (error,list) source ->
+               let error, edg_list = Fixed_size_array.get parameters error source newgraph.edges
+               in
+               match edg_list with
+               | Some [_,outcoming_site] ->
+                 begin
+                   match Fixed_size_array.get parameters error source newgraph.node_labels with
+                   | error, None ->   Exception.warn parameters error __POS__ Exit list
+                   | error, Some (source_id,incoming_site) ->
+                     begin
+                       match
+                         Ckappa_sig.Agent_id_quick_nearly_Inf_Int_storage_Imperatif.get
+                           parameters error
+                           source_id
+                           mixture.Cckappa_sig.views
+                       with
+                       | error, None ->
+                         Exception.warn parameters error __POS__ Exit list
+                       | error, Some source_name ->
+
+                      
+                         begin
+                           match
+                             source_name
+                           with
+                           | Cckappa_sig.Ghost|Cckappa_sig.Unknown_agent _ ->
+                             Exception.warn parameters error __POS__ Exit list
+                           | Cckappa_sig.Agent proper_agent
+                           | Cckappa_sig.Dead_agent (proper_agent,_,_,_) ->
+
+                             begin
+                               match
+                                 Ckappa_sig.Agent_id_quick_nearly_Inf_Int_storage_Imperatif.get
+                                   parameters error
+                                   source_id
+                                   mixture.Cckappa_sig.bonds
+                               with
+                               | error, None ->
+                                 Exception.warn parameters error __POS__ Exit list
+                               | error, Some map ->
+                                 begin
+                                   match
+                                     Ckappa_sig.Site_map_and_set.Map.find_option
+                                       parameters error
+                                       outcoming_site
+                                       map
+                                   with
+                                   | error, None ->
+                                     Exception.warn parameters error __POS__ Exit list
+                                   | error, Some address ->
+                                     error,(incoming_site,proper_agent.Cckappa_sig.agent_name,address.Cckappa_sig.site)
+                                           ::list
+                                 end
+                             end
+                         end
+
+
+                     end
+                 end
+               | None | Some ( [] | _::_ )->
+                 Exception.warn parameters error __POS__ Exit list
+             ) (error, []) list
+         in
+         error, new_list::main_list)
+      (error, [])
+      (List.rev result)
+  in
   (*and convert c_agent_type in c_agent_name *)
-List.rev_map (fun e ->
-    match e with
-    |(site', agent_index, site) ->
-      let agent_name = mixture.views.get parameters error agent_index mixture
-      in (site',agent_name,site)
-  ) (List.rev ageidsite)
+  error, sageidsite
+
 
 
 
@@ -784,15 +845,23 @@ let _  =
       let nodelabel,
           listnode,
           listedge
-        = (fun (x:node)-> x),
+        = (fun (x:node)->
+            Ckappa_sig.agent_id_of_int x,
+            Ckappa_sig.dummy_site_name),
+
           [ (0:node); (1:node); (2:node); (3:node); (4:node) ;
             (5:node); (6:node); (7:node); (8:node)],
 
-          [ ((0:node),0,(1:node));
-            ((1:node),1,(2:node)); ((2:node),2,(3:node)); ((3:node),3,(4:node));
-            ((4:node),4,(5:node));
-            ((5:node),5,(6:node)); ((6:node),6,(7:node)); ((7:node),7,(4:node));
-            ((3:node),8,(8:node)); ((8:node),9,(1:node))]
+          [ ((0:node),Ckappa_sig.site_name_of_int 0,(1:node));
+            ((1:node),Ckappa_sig.site_name_of_int 1,(2:node));
+            ((2:node),Ckappa_sig.site_name_of_int 2,(3:node));
+            ((3:node),Ckappa_sig.site_name_of_int 3,(4:node));
+            ((4:node),Ckappa_sig.site_name_of_int 4,(5:node));
+            ((5:node),Ckappa_sig.site_name_of_int 5,(6:node));
+            ((6:node),Ckappa_sig.site_name_of_int 6,(7:node));
+            ((7:node),Ckappa_sig.site_name_of_int 7,(4:node));
+            ((3:node),Ckappa_sig.site_name_of_int 8,(8:node));
+            ((8:node),Ckappa_sig.site_name_of_int 9,(1:node))]
 
       in create
         parameters  error
