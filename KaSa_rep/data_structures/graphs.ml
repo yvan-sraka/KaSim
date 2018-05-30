@@ -773,7 +773,7 @@ let give_cycle  parameters error (mixture :Cckappa_sig.mixture) =
                          Exception.warn parameters error __POS__ Exit list
                        | error, Some source_name ->
 
-                      
+
                          begin
                            match
                              source_name
@@ -820,7 +820,6 @@ let give_cycle  parameters error (mixture :Cckappa_sig.mixture) =
       (error, [])
       (List.rev result)
   in
-  (*and convert c_agent_type in c_agent_name *)
   error, sageidsite
 
 
