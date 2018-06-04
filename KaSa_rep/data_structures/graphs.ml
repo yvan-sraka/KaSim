@@ -1,4 +1,4 @@
-let local_trace = false
+let local_trace = (*true*)false
 
 type node = int
 
@@ -848,7 +848,7 @@ let _  =
             Ckappa_sig.agent_id_of_int x,
             Ckappa_sig.dummy_site_name),
 
-          [ (0:node); (1:node); (2:node); (3:node); (4:node) ;
+            [ (0:node); (1:node); (2:node); (3:node); (4:node) ;
             (5:node); (6:node); (7:node); (8:node)],
 
           [ ((0:node),Ckappa_sig.site_name_of_int 0,(1:node));
@@ -860,8 +860,34 @@ let _  =
             ((6:node),Ckappa_sig.site_name_of_int 6,(7:node));
             ((7:node),Ckappa_sig.site_name_of_int 7,(4:node));
             ((3:node),Ckappa_sig.site_name_of_int 8,(8:node));
-            ((8:node),Ckappa_sig.site_name_of_int 9,(1:node))]
+              ((8:node),Ckappa_sig.site_name_of_int 9,(1:node))]
+          (*[ (0:node); (1:node); (2:node); (3:node);
+            (4:node);(5:node); (6:node); (7:node); (8:node); (9:node)],
 
+          [ ((0:node),Ckappa_sig.site_name_of_int 0,(1:node));
+
+            ((1:node),Ckappa_sig.site_name_of_int 1,(2:node));
+            ((1:node),Ckappa_sig.site_name_of_int 10,(4:node));
+
+            ((2:node),Ckappa_sig.site_name_of_int 2,(0:node));
+
+
+            ((3:node),Ckappa_sig.site_name_of_int 3,(1:node));
+            ((3:node),Ckappa_sig.site_name_of_int 11,(7:node));
+
+            ((1:node),Ckappa_sig.site_name_of_int 4,(4:node));
+
+            ((5:node),Ckappa_sig.site_name_of_int 5,(2:node));
+            ((5:node),Ckappa_sig.site_name_of_int 6,(6:node));
+
+            ((6:node),Ckappa_sig.site_name_of_int 7,(1:node));
+            ((6:node),Ckappa_sig.site_name_of_int 12,(7:node));
+
+            ((7:node),Ckappa_sig.site_name_of_int 8,(8:node));
+
+            ((8:node),Ckappa_sig.site_name_of_int 9,(6:node));
+          ]
+          *)
       in create
         parameters  error
         nodelabel
@@ -882,5 +908,5 @@ let _  =
       (fun x ->
          let ()= Loggers.print_newline (Remanent_parameters.get_logger parameters) in
          List.iter (fun x -> Loggers.fprintf (Remanent_parameters.get_logger parameters)
-                       "%s%i:" (Remanent_parameters.get_prefix parameters)
+                       " TEST %s%i:" (Remanent_parameters.get_prefix parameters)
                        x)x) result
