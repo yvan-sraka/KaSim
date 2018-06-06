@@ -108,10 +108,36 @@ let build_decision_tree_list parameters error handler mixture
                (*  add link somewhere....IMPORTANT  *)
                else
            *)
-           if n<1 then
+           if n=1 then
              (*stop case : at the end of the list : two cases : cycle or no cycle*)
              (*first case*)
-             begin
+             (*node*)
+             match cyclelis with
+             | [] -> Empty
+             | (sin,ag,sout)::tail ->
+               (*let error, graph =
+                 Build_graph.add_link parameters error ag_id st ag_id' st' graph*)
+               begin
+                 let error, ag, graph =
+                   Build_graph.add_agent parameters error ag graph in
+                 (*we need agent_id and not agent_name , so we use cpt for agent_id*)
+                 let error, graph =
+                   Build_graph.add_link parameters error previousag last_site ag sinH graph
+                 in
+                 (*graph_free= the site is free*)
+
+                 let error, graph_free =
+
+                   Build_graph.add_site parameters error cpt
+                     (*SOUT? NO SURE *)
+                     sout graph in
+                 (*be sure last_site = sout?*)
+                 let last_site = sout in
+                 let cpt= Ckappa_sig.agent_id_of_int ((Ckappa_sig.int_of_agent_id cpt)+1) in
+                 let node_label = graph in
+                 (*leaf*)
+                 let nonbinded_site_leaf = Node (graph_free,[]) in
+
                let error, head, graph =
                  Build_graph.add_agent parameters error head graph in
                (*we need agent_id and not agent_name , so we use cpt for agent_id*)
@@ -135,8 +161,13 @@ let build_decision_tree_list parameters error handler mixture
 
                let node_labelcy = graphcy in
                (* ????? IS IT OK ?*)
-               Non_empty (Node (node_label,[]); Node(node_labelcy,[]))
 
+               let repeat_agent_leaf=
+                Node (node_label,[])
+               in
+               let cycle_leaf = Node(node_labelcy,[])
+               in
+               Non_empty (Node (node_label,[cycle_leaf;repeat_agent_leaf;nonbinded_site_leaf]))
              end
              (*second case*)
            else
