@@ -49,60 +49,57 @@ let () = print_tree Format.std_formatter string_of_int tree
 
 (*let build_decision_tree = ()*)
 
-let build_decision_tree parameters error handler mixture
+let build_decision_tree_list parameters error handler mixture
     (allcycle:(((Ckappa_sig.c_site_name  * Ckappa_sig.c_agent_name * Ckappa_sig.c_site_name ) list)list))=
   (** FOR EACH cycle : WORK IN PROGRESS cycle = list of edge ((Ckappa_sig.c_site_name  * c_agent_name * Ckappa_sig.c_site_name ))
       so wrong name  MAKE A CHANGE*)
   (* take the first element of the list and initialize the graph *)
-  (* CPT to node ? *)
+  (* CPT to node ?  *)
   (*let for_list liste  = *)
 
   let error, trees =
     List.fold_left
-      (fun (error, cyclelis)->
+      (fun (error,list) cyclelis ->
          let cpt = (Ckappa_sig.agent_id_of_int 0 ) in
          let error, graph = Build_graph.init parameters error handler in
 
          let n=List.length cyclelis in
-         let head = List.hd cyclelis in
+         let sinH,head,southH  = List.hd cyclelis in
          (*need also head in out*)
          (*****************************************)
-         let tree cyclelis =
-           match cyclelis with
-           | [] -> Empty
-           | (sinH,head,soutH)::tail ->
 
-             let error, head, graph =
-               Build_graph.add_agent parameters error head graph in
-             let error, graph_free =
 
-               Build_graph.add_site parameters error cpt
-                 (*SOUT? NO SURE *)
-                 soutH
-                 graph in
-             let node_label = graph in
+         (* let error, head, graph =
+            Build_graph.add_agent parameters error head graph in
+            let error, graph_free =
 
-             let cpt= Ckappa_sig.agent_id_of_int ((Ckappa_sig.int_of_agent_id cpt)+1) in
+            Build_graph.add_site parameters error cpt
+             (*SOUT? NO SURE *)
+             soutH
+             graph in
+            let node_label = graph in
 
-             let left_potentially_empty_tree =
-               build_dtree graph
-                 cpt
-                 (n-1)
-                 ag
-                 tail in
-             let right_non_empty_tree = Node (graph_free,[]) in
-             match
-               left_potentially_empty_tree
-             with
-             | Empty ->
-               Non_empty (Node (node_label,[]))
-             | Non_empty left_non_empty_tree ->
-               Non_empty (Node (node_label,[left_non_empty_tree;right_non_empty_tree]))
+            let cpt= Ckappa_sig.agent_id_of_int ((Ckappa_sig.int_of_agent_id cpt)+1) in
 
+            let left_potentially_empty_tree =
+            build_dtree graph
+             cpt
+             (n-1)
+             head
+             tail in
+            let right_non_empty_tree = Node (graph_free,[]) in
+            match
+            left_potentially_empty_tree
+            with
+            | Empty ->
+            Non_empty (Node (node_label,[]))
+            | Non_empty left_non_empty_tree ->
+            Non_empty (Node (node_label,[left_non_empty_tree;right_non_empty_tree]))
+         *)
          (**********************)
-         in
+
          (* problem with  *)
-         let rec build_dtree graph cpt n previousag cyclelis =
+         let rec build_dtree graph cpt n previousag last_site cyclelis sinH head southH=
            (*  if cpt=0 then
                match cyclelis with
                | (sin,ag,sout)::tail ->
@@ -120,54 +117,64 @@ let build_decision_tree parameters error handler mixture
                (*we need agent_id and not agent_name , so we use cpt for agent_id*)
 
                let error, graphl =
-                 Build_graph.add_link parameters error previousag sinH ag soutH graphl
+                 Build_graph.add_link parameters error previousag last_site previousag sinH graph
                in
 
                let node_label = graphl in
                (*we add the link for the cycle*)
 
                let error, graphcy =
-                 Build_graph.add_link parameters error previousag sin head sout graphl
+                 Build_graph.add_link parameters
+                   error
+                   previousag
+                    last_site
+                   head
+                   sinH
+                   graphl
                in
 
                let node_labelcy = graphcy in
-               Non_empty (Node (node_label,node_labelcy))
+               (* ????? IS IT OK ?*)
+               Non_empty (Node (node_label,[]); Node(node_labelcy,[]))
 
              end
              (*second case*)
+           else
              (*only the first case *)
-             (*if (Ckappa_sig.int_of_agent_id cpt)=0 then
-               match cyclelis with
-               | [] -> Empty
-               | (sin,ag,sout)::tail ->
-                 begin
-                   let error, ag, graph =
-                     Build_graph.add_agent parameters error ag graph in
-                   let error, graph_free =
+           if (Ckappa_sig.int_of_agent_id cpt)=0 then
+             match cyclelis with
+             | [] -> Empty
+             | (sin,ag,sout)::tail ->
+               begin
+                 let error, ag, graph =
+                   Build_graph.add_agent parameters error ag graph in
+                 let error, graph_free =
 
-                     Build_graph.add_site parameters error cpt
-                       (*SOUT? NO SURE *)
-                       sout
-                       graph in
-                   let node_label = graph in
+                   Build_graph.add_site parameters error cpt
+                     (*SOUT? NO SURE *)
+                     sout
+                     graph in
+                 let node_label = graph in
 
-                   let cpt= Ckappa_sig.agent_id_of_int ((Ckappa_sig.int_of_agent_id cpt)+1) in
-
-                   let left_potentially_empty_tree =
-                     build_dtree graph
-                       cpt
-                       (n-1)
-                       ag
-                       tail in
-                   let right_non_empty_tree = Node (graph_free,[]) in
-                   match
-                     left_potentially_empty_tree
-                   with
-                   | Empty ->
-                     Non_empty (Node (node_label,[]))
-                   | Non_empty left_non_empty_tree ->
-                     Non_empty (Node (node_label,[left_non_empty_tree;right_non_empty_tree]))
-                 end*)
+                 let cpt= Ckappa_sig.agent_id_of_int ((Ckappa_sig.int_of_agent_id cpt)+1) in
+                 (*be sure last_site = sout?*)
+                 let last_site = sout in
+                 let left_potentially_empty_tree =
+                   build_dtree graph
+                     cpt
+                     (n-1)
+                     ag
+                    last_site
+                     tail sinH head southH in
+                 let right_non_empty_tree = Node (graph_free,[]) in
+                 match
+                   left_potentially_empty_tree
+                 with
+                 | Empty ->
+                   Non_empty (Node (node_label,[]))
+                 | Non_empty left_non_empty_tree ->
+                   Non_empty (Node (node_label,[left_non_empty_tree;right_non_empty_tree]))
+               end
 
            (*  everything except first case  *)
            else
@@ -184,7 +191,7 @@ let build_decision_tree parameters error handler mixture
 
 
                  let error, graph =
-                   Build_graph.add_link parameters error previousag sin ag sout graph
+                   Build_graph.add_link parameters error previousag  last_site ag sinH graph
                  in
                  (*graph_free= the site is free*)
 
@@ -195,9 +202,11 @@ let build_decision_tree parameters error handler mixture
                      cpt
                      (*SOUT? NO SURE *)
                      sout graph in
+                     (*be sure last_site = sout?*)
+                     let last_site = sout in
                  let cpt= Ckappa_sig.agent_id_of_int ((Ckappa_sig.int_of_agent_id cpt)+1) in
                  let node_label = graph in
-                 let left_potentially_empty_tree = build_dtree graph cpt (n-1) ag tail in
+                 let left_potentially_empty_tree = build_dtree graph cpt (n-1) ag last_site tail sinH head southH in
                  let right_non_empty_tree = Node (graph_free,[]) in
                  match
                    left_potentially_empty_tree
@@ -207,14 +216,16 @@ let build_decision_tree parameters error handler mixture
                  | Non_empty left_non_empty_tree ->
                    Non_empty (Node (node_label,[left_non_empty_tree;right_non_empty_tree]))
                end
-               (* in
-                  (*previous agent needs to be nothing PROBLEM*)
-                  let tree =
-                  build_dtree graph cpt n (Ckappa_sig.agent_id_of_int 0) cyclelis
-                  in tree)*)
-         in tree )
+         in
+         (*previous agent should be null  VERIFY*)
+         let tree =
+           build_dtree graph cpt n Ckappa_sig.dummy_agent_id Ckappa_sig.dummy_site_name cyclelis sinH head southH
 
-      error
+         in
+         error, tree::list
+
+      )
+      (error,[])
       (List.rev allcycle)
   in
   error, trees

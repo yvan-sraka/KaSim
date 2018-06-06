@@ -550,4 +550,4 @@ let main () =
   ()
 
 let () = main ()
-let _ = Graph_decision_tree.build_decision_tree
+let _ = Graph_decision_tree.build_decision_tree_list
