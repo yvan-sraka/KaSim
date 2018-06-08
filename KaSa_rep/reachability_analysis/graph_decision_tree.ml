@@ -126,11 +126,15 @@ let build_decision_tree_list parameters error handler mixture
                  in
                  (*graph_free= the site is free*)
 
-                 let error, graph_free =
+                  let error, graph_free =
 
                    Build_graph.add_site parameters error cpt
                      (*SOUT? NO SURE *)
                      sout graph in
+
+                     let error, graph_free = Build_graph.add_free parameters error cpt
+                     (*SOUT? NO SURE *)
+                         sout graph in
                  (*be sure last_site = sout?*)
                  let last_site = sout in
                  let cpt= Ckappa_sig.agent_id_of_int ((Ckappa_sig.int_of_agent_id cpt)+1) in
@@ -171,8 +175,8 @@ let build_decision_tree_list parameters error handler mixture
              end
              (*second case*)
            else
-             (*only the first case *)
-           if (Ckappa_sig.int_of_agent_id cpt)=0 then
+             (* only the first case : peut etre pas besoin ? *)
+              if (Ckappa_sig.int_of_agent_id cpt)=0 then
              match cyclelis with
              | [] -> Empty
              | (sin,ag,sout)::tail ->
@@ -181,10 +185,15 @@ let build_decision_tree_list parameters error handler mixture
                    Build_graph.add_agent parameters error ag graph in
                  let error, graph_free =
 
-                   Build_graph.add_site parameters error cpt
+                    Build_graph.add_site parameters error cpt
                      (*SOUT? NO SURE *)
                      sout
                      graph in
+                     let error, graph_free = Build_graph.add_free parameters error cpt
+                     (*SOUT? NO SURE *)
+                         sout graph
+
+                                      in
                  let node_label = graph in
 
                  let cpt= Ckappa_sig.agent_id_of_int ((Ckappa_sig.int_of_agent_id cpt)+1) in
@@ -196,7 +205,8 @@ let build_decision_tree_list parameters error handler mixture
                      (n-1)
                      ag
                     last_site
-                     tail sinH head southH in
+                    tail sinH head southH in
+
                  let right_non_empty_tree = Node (graph_free,[]) in
                  match
                    left_potentially_empty_tree
@@ -205,7 +215,7 @@ let build_decision_tree_list parameters error handler mixture
                    Non_empty (Node (node_label,[]))
                  | Non_empty left_non_empty_tree ->
                    Non_empty (Node (node_label,[left_non_empty_tree;right_non_empty_tree]))
-               end
+                end
 
            (*  everything except first case  *)
            else
@@ -222,18 +232,25 @@ let build_decision_tree_list parameters error handler mixture
 
 
                  let error, graph =
-                   Build_graph.add_link parameters error previousag  last_site ag sinH graph
+                   Build_graph.add_link parameters error previousag last_site ag sinH graph
                  in
                  (*graph_free= the site is free*)
 
                  let error, graph_free =
 
-                   Build_graph.add_site
+                    Build_graph.add_site
                      parameters error
                      cpt
                      (*SOUT? NO SURE *)
                      sout graph in
-                     (*be sure last_site = sout?*)
+                 (*be sure last_site = sout?*)
+                     (*state ?*)
+
+let error, graph_free = Build_graph.add_free parameters error cpt
+(*SOUT? NO SURE *)
+    sout graph
+
+                 in
                      let last_site = sout in
                  let cpt= Ckappa_sig.agent_id_of_int ((Ckappa_sig.int_of_agent_id cpt)+1) in
                  let node_label = graph in
@@ -261,3 +278,34 @@ let build_decision_tree_list parameters error handler mixture
   in
   error, trees
 (*end loop for list *)
+
+
+
+
+(********************************
+   FUNCTION TEST
+ ********************************)
+(* test function : run if local_trace = true *)
+
+(*let _  =
+  if local_trace then
+    let error = Exception.empty_error_handler in
+    let _, parameters, _ = Get_option.get_option error in
+
+    let allcycle = [[(Ckappa_sig.site_name_of_int 0, Ckappa_sig.c_agent_name, Ckappa_sig.site_name_of_int 1);
+                     (Ckappa_sig.site_name_of_int 0, Ckappa_sig.c_agent_name, Ckappa_sig.site_name_of_int 1);
+                     (Ckappa_sig.site_name_of_int 0, Ckappa_sig.c_agent_name, Ckappa_sig.site_name_of_int 1);
+                     (Ckappa_sig.site_name_of_int 0, Ckappa_sig.c_agent_name, Ckappa_sig.site_name_of_int 1);
+                     (Ckappa_sig.site_name_of_int 0, Ckappa_sig.c_agent_name, Ckappa_sig.site_name_of_int 1);
+
+                    ]
+                      [(Ckappa_sig.site_name_of_int 0, Ckappa_sig.c_agent_name, Ckappa_sig.site_name_of_int 1);
+                       (Ckappa_sig.site_name_of_int 0, Ckappa_sig.c_agent_name, Ckappa_sig.site_name_of_int 1);
+                       (Ckappa_sig.site_name_of_int 0, Ckappa_sig.c_agent_name, Ckappa_sig.site_name_of_int 1);
+                      ]
+                      [(Ckappa_sig.site_name_of_int 0, Ckappa_sig.c_agent_name, Ckappa_sig.site_name_of_int 1);
+                       (Ckappa_sig.site_name_of_int 0, Ckappa_sig.c_agent_name, Ckappa_sig.site_name_of_int 1);
+                       (Ckappa_sig.site_name_of_int 0, Ckappa_sig.c_agent_name, Ckappa_sig.site_name_of_int 1);
+                       (Ckappa_sig.site_name_of_int 0, Ckappa_sig.c_agent_name, Ckappa_sig.site_name_of_int 1);]
+                   ]
+*)
