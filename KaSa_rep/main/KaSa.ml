@@ -67,7 +67,7 @@ let main () =
         Export_to_KaSa.output_scc_decomposition
           ~accuracy_level_cm ~accuracy_level_scc state
       in
-        state
+      state
     else
       state
   in
@@ -107,7 +107,7 @@ let main () =
 
 
 
-(*-----------------------------------------------------------------------*)
+  (*-----------------------------------------------------------------------*)
   let state =
     if Remanent_parameters.get_do_influence_map parameters
     then
@@ -137,7 +137,7 @@ let main () =
         Export_to_KaSa.output_constraints_list state
       else
         fst (Export_to_KaSa.get_reachability_analysis state)
-      else
+    else
       state
   in
   let state =
@@ -158,19 +158,19 @@ let main () =
   let state =
     if (Remanent_parameters.get_compute_symmetries parameters)
     then
-    match Remanent_parameters.get_contact_map_accuracy_level parameters
-    with
-    | Remanent_parameters_sig.Medium
-    | Remanent_parameters_sig.High
-    | Remanent_parameters_sig.Full ->
-      Export_to_KaSa.output_symmetries
-        ~accuracy_level:Public_data.Medium
-        state
-    | Remanent_parameters_sig.None
-    | Remanent_parameters_sig.Low ->
-      Export_to_KaSa.output_symmetries
-        ~accuracy_level:Public_data.Low
-        state
+      match Remanent_parameters.get_contact_map_accuracy_level parameters
+      with
+      | Remanent_parameters_sig.Medium
+      | Remanent_parameters_sig.High
+      | Remanent_parameters_sig.Full ->
+        Export_to_KaSa.output_symmetries
+          ~accuracy_level:Public_data.Medium
+          state
+      | Remanent_parameters_sig.None
+      | Remanent_parameters_sig.Low ->
+        Export_to_KaSa.output_symmetries
+          ~accuracy_level:Public_data.Low
+          state
     else
       state
   in
@@ -212,11 +212,11 @@ let main () =
         with
         | None -> ()
         | Some l ->
-            Loggers.fprintf
+          Loggers.fprintf
             (Remanent_parameters.get_logger parameters)
             "; rules: %i"
             l.Cckappa_sig.nrules
-          in
+      in
       let () =
         match
           dead_rules
@@ -302,6 +302,15 @@ let main () =
       in
       ()
   in
+  let error, state, _decision_tree =
+    let parameters = Export_to_KaSa.get_parameters state in
+    let state, handler = Export_to_KaSa.get_handler state in
+    let state, compil = Export_to_KaSa.get_c_compilation state in
+    let error, rhs_graph_cycle = Simple_cycle.find_cycle parameters error compil in
+    let error, decision_tree = Graph_decision_tree.main parameters error handler in
+    error, state, decision_tree
+  in
+
   let () =
     if
       (Remanent_parameters.get_backdoor_nbr_of_scc parameters
@@ -311,17 +320,17 @@ let main () =
        Remanent_parameters.get_backdoor_nbr_of_dead_rules parameters
        ||
        Remanent_parameters.get_backdoor_nbr_of_non_weakly_reversible_transitions parameters
-      ||
-      Remanent_parameters.get_backdoor_timing parameters
-      ||
-      Remanent_parameters.get_backdoor_nbr_of_rules_with_non_weakly_reversible_transitions parameters
-      ||
-      Remanent_parameters.get_backdoor_nbr_of_rules parameters
-      ||
-      Remanent_parameters.get_backdoor_nbr_of_constraints parameters
-      ||
-      Remanent_parameters.get_backdoor_nbr_of_influences parameters
-     )
+       ||
+       Remanent_parameters.get_backdoor_timing parameters
+       ||
+       Remanent_parameters.get_backdoor_nbr_of_rules_with_non_weakly_reversible_transitions parameters
+       ||
+       Remanent_parameters.get_backdoor_nbr_of_rules parameters
+       ||
+       Remanent_parameters.get_backdoor_nbr_of_constraints parameters
+       ||
+       Remanent_parameters.get_backdoor_nbr_of_influences parameters
+      )
     then
       let handler, dead_rules, separating_transitions,
           _   =
@@ -367,15 +376,15 @@ let main () =
             with
             | None -> ()
             | Some l ->
-            let nt =
-              List.fold_left
-                (fun nt (_,l) ->
-                   nt+List.length l)
-                (0) l
-            in
-            Loggers.fprintf
-              (Remanent_parameters.get_logger_backdoor parameters)
-              "%i" nt
+              let nt =
+                List.fold_left
+                  (fun nt (_,l) ->
+                     nt+List.length l)
+                  (0) l
+              in
+              Loggers.fprintf
+                (Remanent_parameters.get_logger_backdoor parameters)
+                "%i" nt
           in
           ()
       in
@@ -389,10 +398,10 @@ let main () =
             with
             | None -> ()
             | Some l ->
-            let nt = List.length l in
-            Loggers.fprintf
-              (Remanent_parameters.get_logger_backdoor parameters)
-              "%i" nt
+              let nt = List.length l in
+              Loggers.fprintf
+                (Remanent_parameters.get_logger_backdoor parameters)
+                "%i" nt
           in
           ()
       in
@@ -440,26 +449,26 @@ let main () =
       let () =
         if Remanent_parameters.get_backdoor_nbr_of_scc parameters
         then
-        let accuracy_level_cm =
-          match
-            Remanent_parameters.get_contact_map_accuracy_level parameters
-          with
-          | Remanent_parameters_sig.None -> Public_data.Low
-          | Remanent_parameters_sig.Low -> Public_data.Low
-          | Remanent_parameters_sig.Medium
-          | Remanent_parameters_sig.High
-          | Remanent_parameters_sig.Full -> Public_data.Full
-        in
-        let accuracy_level_scc =
-          match
-            Remanent_parameters.get_scc_accuracy_level parameters
-          with
-          | Remanent_parameters_sig.None
-          | Remanent_parameters_sig.Low -> Public_data.Low
-          | Remanent_parameters_sig.Medium
-          | Remanent_parameters_sig.High
-          | Remanent_parameters_sig.Full -> Public_data.High
-        in
+          let accuracy_level_cm =
+            match
+              Remanent_parameters.get_contact_map_accuracy_level parameters
+            with
+            | Remanent_parameters_sig.None -> Public_data.Low
+            | Remanent_parameters_sig.Low -> Public_data.Low
+            | Remanent_parameters_sig.Medium
+            | Remanent_parameters_sig.High
+            | Remanent_parameters_sig.Full -> Public_data.Full
+          in
+          let accuracy_level_scc =
+            match
+              Remanent_parameters.get_scc_accuracy_level parameters
+            with
+            | Remanent_parameters_sig.None
+            | Remanent_parameters_sig.Low -> Public_data.Low
+            | Remanent_parameters_sig.Medium
+            | Remanent_parameters_sig.High
+            | Remanent_parameters_sig.Full -> Public_data.High
+          in
           let _,scc =
             Export_to_KaSa.get_scc_decomposition ~accuracy_level_cm ~accuracy_level_scc state
           in
@@ -468,29 +477,30 @@ let main () =
             (Remanent_parameters.get_logger_backdoor parameters)
             "%i" n_constraints
       in
+
       let () =
         if Remanent_parameters.get_backdoor_average_size_of_scc parameters
         then
-        let accuracy_level_cm =
-          match
-            Remanent_parameters.get_contact_map_accuracy_level parameters
-          with
-          | Remanent_parameters_sig.None -> Public_data.Low
-          | Remanent_parameters_sig.Low -> Public_data.Low
-          | Remanent_parameters_sig.Medium
-          | Remanent_parameters_sig.High
-          | Remanent_parameters_sig.Full -> Public_data.Full
-        in
-        let accuracy_level_scc =
-          match
-            Remanent_parameters.get_scc_accuracy_level parameters
-          with
-          | Remanent_parameters_sig.None
-          | Remanent_parameters_sig.Low -> Public_data.Low
-          | Remanent_parameters_sig.Medium
-          | Remanent_parameters_sig.High
-          | Remanent_parameters_sig.Full -> Public_data.High
-        in
+          let accuracy_level_cm =
+            match
+              Remanent_parameters.get_contact_map_accuracy_level parameters
+            with
+            | Remanent_parameters_sig.None -> Public_data.Low
+            | Remanent_parameters_sig.Low -> Public_data.Low
+            | Remanent_parameters_sig.Medium
+            | Remanent_parameters_sig.High
+            | Remanent_parameters_sig.Full -> Public_data.Full
+          in
+          let accuracy_level_scc =
+            match
+              Remanent_parameters.get_scc_accuracy_level parameters
+            with
+            | Remanent_parameters_sig.None
+            | Remanent_parameters_sig.Low -> Public_data.Low
+            | Remanent_parameters_sig.Medium
+            | Remanent_parameters_sig.High
+            | Remanent_parameters_sig.Full -> Public_data.High
+          in
           let _,scc =
             Export_to_KaSa.get_scc_decomposition ~accuracy_level_cm ~accuracy_level_scc state
           in
@@ -508,46 +518,49 @@ let main () =
               (Remanent_parameters.get_logger_backdoor parameters)
               "%i" n_constraints
           else
-          Loggers.fprintf
-            (Remanent_parameters.get_logger_backdoor parameters)
-            "N/A"
+            Loggers.fprintf
+              (Remanent_parameters.get_logger_backdoor parameters)
+              "N/A"
       in
       let () =
         if Remanent_parameters.get_backdoor_timing parameters
         then
-        let end_time = Sys.time () in
-        let cpu_time = end_time -. start_time in
-        let () =
+          let end_time = Sys.time () in
+          let cpu_time = end_time -. start_time in
+          let () =
 
 
-          if cpu_time <= 1. then
-            Loggers.fprintf
-              (Remanent_parameters.get_logger_backdoor parameters)
-              "%0.3f" cpu_time
-          else if cpu_time <= 10.
-          then
-            Loggers.fprintf
-              (Remanent_parameters.get_logger_backdoor parameters)
-              "%.2f" cpu_time
-          else if cpu_time <= 1000.
-          then
-            Loggers.fprintf
-              (Remanent_parameters.get_logger_backdoor parameters)
-              "%3.0f" cpu_time
-          else
+            if cpu_time <= 1. then
+              Loggers.fprintf
+                (Remanent_parameters.get_logger_backdoor parameters)
+                "%0.3f" cpu_time
+            else if cpu_time <= 10.
+            then
+              Loggers.fprintf
+                (Remanent_parameters.get_logger_backdoor parameters)
+                "%.2f" cpu_time
+            else if cpu_time <= 1000.
+            then
+              Loggers.fprintf
+                (Remanent_parameters.get_logger_backdoor parameters)
+                "%3.0f" cpu_time
+            else
               Loggers.fprintf
                 (Remanent_parameters.get_logger_backdoor parameters)
                 "%3.0g" cpu_time
-        in
-        ()
+          in
+          ()
       in
       let () =
         Loggers.flush_logger
           (Remanent_parameters.get_logger_backdoor parameters)
+      in
+      let () =
+        Loggers.flush_logger
+          (Remanent_parameters.get_logger parameters)
       in
       ()
   in
   ()
 
 let () = main ()
-let _ = Graph_decision_tree.build_decision_tree_list
