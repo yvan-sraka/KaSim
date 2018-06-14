@@ -1,6 +1,5 @@
 let local_trace = true
-(*build a decision tree
-  WORK IN PROGRESS*)
+(*build a decision tree *)
 
 
 type 'a non_empty_tree =
@@ -85,67 +84,46 @@ let decision_tree_list parameters error handler (allcycle:(((Ckappa_sig.c_site_n
                  let error, ag, graph =
                    Build_graph.add_agent parameters error ag_name graph in
 
+                   let error, graph =
+                     Build_graph.add_site parameters error ag sin graph in
+
+
                  let error, graph =
-                   Build_graph.add_link parameters error previousag last_site ag sinH graph
+                   Build_graph.add_link parameters error previousag last_site ag sin graph
                  in
+
                  (*graph_free= the site is free*)
+                 let error, graph_site = Build_graph.add_site parameters error ag sout graph in
 
-                 let error, graph_free =
+                 let error, graph_free = Build_graph.add_free parameters error ag sout graph_site in
 
-                   Build_graph.add_site parameters error ag
-                     (*SOUT? NO SURE *)
-                     sout graph in
-
-                 let error, graph_free = Build_graph.add_free parameters error ag
-                     (*SOUT? NO SURE *)
-                     sout graph in
-                 (*be sure last_site = sout?*)
+                 (*be sure last_site = sout*)
                  let last_site = sout in
                  let cpt= Ckappa_sig.agent_id_of_int ((Ckappa_sig.int_of_agent_id cpt)+1) in
                  let node_label = graph in
                  (*leaf*)
                  let nonbinded_site_leaf = Node (graph_free,[]) in
 
+                 (**)
                  let error, head, graph =
-                   Build_graph.add_agent parameters error head graph in
-                 (*we need agent_id and not agent_name , so we use cpt for agent_id*)
+                   Build_graph.add_agent parameters error head graph_site in
 
-
-
+                 let error, graph = Build_graph.add_site parameters error head sinH graph in
 
                  let error, graphl =
-                   Build_graph.add_link parameters error previousag last_site previousag sinH graph
+                   Build_graph.add_link parameters error ag last_site head sinH graph
                  in
 
                  let node_labell = graphl in
                  (*we add the link for the cycle*)
 
                  let error, graphcy =
-                   Build_graph.add_link parameters
-                     error
-                     previousag
-                     last_site
-                     head
-                     sinH
-                     graphl
+                   Build_graph.add_link parameters error ag last_site head
+                     sinH graph_site
                  in
 
                  let node_labelcy = graphcy in
-                 (* ????? IS IT OK ?*)
 
-                 (************ PRINT **********)
-
-                 let ()= Loggers.fprintf (Remanent_parameters.get_logger parameters)
-                     " D : %i - %i -[ \n" (Ckappa_sig.int_of_agent_id previousag) (Ckappa_sig.int_of_agent_id ag)
-                 in
-                 let ()= Loggers.fprintf (Remanent_parameters.get_logger parameters)
-                     " C :%i - %i - %i  \n" (Ckappa_sig.int_of_agent_id previousag) (Ckappa_sig.int_of_agent_id ag) (Ckappa_sig.int_of_agent_id head)
-                 in
-                 let ()= Loggers.fprintf (Remanent_parameters.get_logger parameters)
-                     " G :%i - %i - %i - \n" (Ckappa_sig.int_of_agent_id previousag) (Ckappa_sig.int_of_agent_id ag) (Ckappa_sig.int_of_agent_id head)
-                 in
-
-                 (************ END PRINT ************)
 
 
                  let repeat_agent_leaf=
@@ -174,12 +152,13 @@ let decision_tree_list parameters error handler (allcycle:(((Ckappa_sig.c_site_n
                  (************ END PRINT ************)
 
 
-                 let error, graph_free =
+                 let error, graph =
 
                    Build_graph.add_site parameters error ag
                      (*SOUT? NO SURE *)
                      sout
                      graph in
+
                  let error, graph_free = Build_graph.add_free parameters error ag
                      (*SOUT? NO SURE *)
                      sout graph
@@ -228,10 +207,24 @@ let decision_tree_list parameters error handler (allcycle:(((Ckappa_sig.c_site_n
                    Build_graph.add_agent parameters error ag graph in
                  (*we need agent_id and not agent_name , so we use cpt for agent_id*)
 
+                 let error, graph_site =
 
+                   Build_graph.add_site
+                     parameters error
+                     ag
+                     (*SOUT? NO SURE *)
+                     sin graph in
+
+                     let error, graph_site =
+
+                       Build_graph.add_site
+                         parameters error
+                         ag
+                         (*SOUT? NO SURE *)
+                         sout graph in
 
                  let error, graph =
-                   Build_graph.add_link parameters error previousag last_site ag sinH graph
+                   Build_graph.add_link parameters error previousag last_site ag sin graph_site
                  in
                  (*graph_free= the site is free*)
 
@@ -242,19 +235,10 @@ let decision_tree_list parameters error handler (allcycle:(((Ckappa_sig.c_site_n
                  in
 
                  (************ END PRINT ************)
-                 let error, graph_free =
-
-                   Build_graph.add_site
-                     parameters error
-                     cpt
-                     (*SOUT? NO SURE *)
-                     sout graph in
-                 (*be sure last_site = sout?*)
-                 (*state ?*)
 
                  let error, graph_free = Build_graph.add_free parameters error cpt
                      (*SOUT? NO SURE *)
-                     sout graph
+                     sout graph_site
 
                  in
                  (************ PRINT **********)
