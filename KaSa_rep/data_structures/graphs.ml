@@ -1,4 +1,4 @@
-let local_trace = (*true*)false
+let local_trace = (*true*) false
 
 type node = int
 

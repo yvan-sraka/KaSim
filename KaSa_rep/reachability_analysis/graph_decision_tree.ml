@@ -1,10 +1,7 @@
 let local_trace = true
-(*built a decision tree
+(*build a decision tree
   WORK IN PROGRESS*)
 
-
-
-(*let build_decision_tree parameters error cyclelist ((c_agent_name:list)list)=*)
 
 type 'a non_empty_tree =
   | Node of ('a * ('a non_empty_tree) list)
@@ -50,9 +47,8 @@ let rec build_tree n =
 (*let build_decision_tree = ()*)
 
 
-(*prend a mixture ? et handler ???*)
-let decision_tree_list parameters error handler
-    (allcycle:(((Ckappa_sig.c_site_name  * Ckappa_sig.c_agent_name * Ckappa_sig.c_site_name ) list)list))=
+
+let decision_tree_list parameters error handler (allcycle:(((Ckappa_sig.c_site_name  * Ckappa_sig.c_agent_name * Ckappa_sig.c_site_name ) list)list))=
   (** FOR EACH cycle : WORK IN PROGRESS cycle = list of edge ((Ckappa_sig.c_site_name  * c_agent_name * Ckappa_sig.c_site_name ))
   *)
   (* take the first element of the list and initialize the graph *)
@@ -73,9 +69,6 @@ let decision_tree_list parameters error handler
          let cpt = (Ckappa_sig.agent_id_of_int 0 ) in
          let error, graph = Build_graph.init parameters error handler in
 
-         (************ PRINT **********)
-         (************ END PRINT ************)
-
          let n=List.length cyclelis in
          let sinH,head,southH  = List.hd cyclelis in
          (*need also head in out*)
@@ -91,10 +84,7 @@ let decision_tree_list parameters error handler
 
                  let error, ag, graph =
                    Build_graph.add_agent parameters error ag_name graph in
-                 (*we need agent_id and not agent_name , so we use cpt for agent_id*)
 
-
-                 (**)
                  let error, graph =
                    Build_graph.add_link parameters error previousag last_site ag sinH graph
                  in

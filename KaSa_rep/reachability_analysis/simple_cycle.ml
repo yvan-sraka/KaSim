@@ -6,13 +6,12 @@ let find_cycle parameters error (compil:Cckappa_sig.compil)=
   (*tranforme compil into right member*)
 
   (** FOR EACH MEMBER : WORK IN PROGRESS **)
-
   (*rules : enriched_rule Ckappa_sig.Rule_nearly_Inf_Int_storage_Imperatif.t;*)
   let rule = compil.Cckappa_sig.rules in (*on a le tableau et faut faire un get jusuq recuperer la partie droite*)
   (*blem : comment recuperer l'id ?? (rule_id:Ckappa_sig.c_rule_id) fold? *)
   (*in
     let r_id = Ckappa_sig.read_c_rule_id (Yojson.Safe.init_lexer ()) (Lexing.from_string s) in*)
-  let key_list = Ckappa_sig.Rule_nearly_Inf_Int_storage_Imperatif.key_list in
+  let error, key_list = Ckappa_sig.Rule_nearly_Inf_Int_storage_Imperatif.key_list parameters error rule in
   let list_cycle_graph key_list =
     List.map(fun r_id->
         let error, enruleo = Ckappa_sig.Rule_nearly_Inf_Int_storage_Imperatif.get parameters error r_id rule
@@ -29,11 +28,11 @@ let find_cycle parameters error (compil:Cckappa_sig.compil)=
             (* transforme the mixture into a graph  and give all the cycle*)
             let error,cycleingraph = Graphs.give_cycle parameters error mixture in
 
-             cycleingraph
+              cycleingraph
           end
 
       )  key_list
-  in  list_cycle_graph  key_list
+  in  error, list_cycle_graph key_list
 
 
 
