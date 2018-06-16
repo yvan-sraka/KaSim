@@ -23,23 +23,41 @@ let rec build_tree n =
     | Non_empty left_non_empty_tree ->
       Non_empty (Node (node_label,[left_non_empty_tree;right_non_empty_tree]))
 
-(*let print_tree fmt to_string tree =
-  let rec aux non_empty_tree depth =
+ let print_tree parameters error print_node_label tree =
+  let rec aux parameters non_empty_tree depth error =
     match non_empty_tree with
     | Node (node_label,sibblings_list) ->
-      let () = Format.fprintf fmt "%s%s\n" (String.make (8*depth) ' ') (to_string node_label) in
       let () =
-        List.iter
-          (fun non_empty_tree -> aux non_empty_tree (depth+1))
-          (List.rev sibblings_list)
+        Loggers.fprintf
+          (Remanent_parameters.get_logger parameters)
+          "%s" (String.make (8*depth) ' ')
       in
-      ()
+      let error =
+        print_node_label
+          parameters error
+          node_label
+      in
+      let error =
+        List.fold_left
+          (fun error non_empty_tree ->
+             aux parameters non_empty_tree (depth+1) error)
+          error (List.rev sibblings_list)
+      in
+      error
   in
   match tree with
-  | Empty -> Format.fprintf fmt "EMPTY TREE\n"
-  | Non_empty non_empty_tree -> aux non_empty_tree 0
+  | Empty ->
+    let () =
+      Loggers.fprintf
+        (Remanent_parameters.get_logger parameters) "EMPTY TREE"
+    in
+    let () =
+      Loggers.print_newline (Remanent_parameters.get_logger parameters)
+    in
+    error
+  | Non_empty non_empty_tree -> aux parameters non_empty_tree 0 error
 
-  let tree = build_tree 3
+  (*let tree = build_tree 3
 
   let () = print_tree Format.std_formatter string_of_int tree*)
 
@@ -339,3 +357,8 @@ let main parameters error handler =
   in
   let de_tree = build_decision_tree_list parameters error handler allcycles in
   error, de_tree
+
+let print parameters error tree =
+  print_tree
+    parameters error
+    Build_graph.print tree

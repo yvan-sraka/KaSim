@@ -4,7 +4,7 @@
  * Jérôme Feret, projet Abstraction/Antique, INRIA Paris-Rocquencourt
  *
  * Creation: December, the 18th of 2010
- * Last modification: Time-stamp: <May 20 2018>
+ * Last modification: Time-stamp: <Jun 16 2018>
  * *
  *
  * Copyright 2010,2011 Institut National de Recherche en Informatique et
@@ -307,7 +307,11 @@ let main () =
     let state, handler = Export_to_KaSa.get_handler state in
     let state, compil = Export_to_KaSa.get_c_compilation state in
     let error, rhs_graph_cycle = Simple_cycle.find_cycle parameters error compil in
-    let error, decision_tree = Graph_decision_tree.main parameters error handler in
+    (* to force the compilation of graph_decision_tree.ml  *)
+    let _  = Graph_decision_tree.build_decision_tree_list in
+    (*  let error, decision_tree = Graph_decision_tree.main parameters error handler in*)
+    (* until the tree is built *)
+    let decision_tree = () in
     error, state, decision_tree
   in
 
