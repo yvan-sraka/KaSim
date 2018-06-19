@@ -33,17 +33,3 @@ let find_cycle parameters error (compil:Cckappa_sig.compil)=
 
       )  key_list
   in  error, list_cycle_graph key_list
-
-
-
-
-    (*let get_rule parameters error static r_id =
-      let compil = get_compil static in
-      let error, rule  =
-        Ckappa_sig.Rule_nearly_Inf_Int_storage_Imperatif.get
-          parameters
-          error
-          r_id
-          compil.Cckappa_sig.rules
-      in
-      error, rule*)

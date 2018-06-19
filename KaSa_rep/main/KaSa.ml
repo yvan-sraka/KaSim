@@ -307,12 +307,15 @@ let main () =
     let state, handler = Export_to_KaSa.get_handler state in
     let state, compil = Export_to_KaSa.get_c_compilation state in
     let error, rhs_graph_cycle = Simple_cycle.find_cycle parameters error compil in
+    let error, decision_tree = Graph_decision_tree.decision_trees_for_each_cycle parameters error handler rhs_graph_cycle in
+      let error= Graph_decision_tree.print_all_tree parameters error handler decision_tree in
     (* to force the compilation of graph_decision_tree.ml  *)
-    let _  = Graph_decision_tree.build_decision_tree_list in
-    (*  let error, decision_tree = Graph_decision_tree.main parameters error handler in*)
+    (*  let _  = Graph_decision_tree.build_decision_tree_list in
+    (* let error, decision_tree = Graph_decision_tree.main parameters error handler in*)
     (* until the tree is built *)
     let decision_tree = () in
-    error, state, decision_tree
+        error, state, decision_tree*)
+    error,state,decision_tree
   in
 
   let () =

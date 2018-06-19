@@ -89,9 +89,13 @@ let decision_tree_list parameters error handler (allcycle:(((Ckappa_sig.c_site_n
          let n=List.length cyclelis in
          let sinH,head,southH  = List.hd cyclelis in
          (*need also head in out*)
+
+         let ()= Loggers.fprintf (Remanent_parameters.get_logger parameters)
+             " FIRST LOOP :  \n"
+         in
          (**********************)
          let rec build_dtree graph cpt n previousag last_site cyclelis sinH head southH=
-
+        
            if n=1 then
              (*stop case*)
              match cyclelis with
@@ -331,11 +335,76 @@ let build_decision_tree_list parameters error handler allcycle =
 
 
 (********************************
+   decision tree for each cycle
+ ********************************)
+(* test function : run if local_trace = true *)
+
+let decision_trees_for_each_cycle parameters error handler cycle =
+  let lis = List.map (fun c -> let error,tree = build_decision_tree_list parameters error handler c in tree)
+      cycle
+  in error,lis
+
+
+(********************************
+   FUNCTION PRINT
+ ********************************)
+
+let print parameters error tree =
+     print_tree
+       parameters error
+       Build_graph.print tree
+
+
+(********************************
+   FUNCTION PRINT ALL
+ ********************************)
+(* test function : run if local_trace = true *)
+(*let print_all_tree parameters error handler cycles =
+
+  let error, tree_l = build_decision_tree_list parameters error handler cycles in*)
+let print_all_tree parameters error handler tree_l=
+  let ()= Loggers.fprintf (Remanent_parameters.get_logger parameters)
+      "PRINT TREE BEGINNING \n"
+  in
+
+  let () = List.iter (fun c ->
+      let () = Loggers.fprintf (Remanent_parameters.get_logger parameters)
+          "\n"
+      in
+      List.iter (fun c -> let error = print
+                              parameters
+                              error
+                              c
+                  in ()) c
+    )tree_l
+  in  error
+
+  (*let print_all_tree parameters error handler cycles =
+
+    let error, tree_l = build_decision_tree_list parameters error handler cycles in
+  (*let print_all_tree parameters error handler tree_l=*)
+
+    let () = List.iter (fun c ->
+        let () = Loggers.fprintf (Remanent_parameters.get_logger parameters)
+            "\n"
+        in
+        List.iter (fun c -> let error = print
+                                parameters
+                                error
+                                c
+                    in ()) c
+      )tree_l
+    in  error*)
+
+
+
+(********************************
    FUNCTION TEST
  ********************************)
 (* test function : run if local_trace = true *)
 
-let main parameters error handler =
+
+(*let main parameters error handler =
   let ()= Loggers.fprintf (Remanent_parameters.get_logger parameters)
       "START MAIN \n"
   in
@@ -354,11 +423,13 @@ let main parameters error handler =
                     (Ckappa_sig.site_name_of_int 4, Ckappa_sig.agent_name_of_int 3, Ckappa_sig.site_name_of_int 5);
                     (Ckappa_sig.site_name_of_int 5, Ckappa_sig.agent_name_of_int 4, Ckappa_sig.site_name_of_int 6);]
                   ]
-  in
-  let de_tree = build_decision_tree_list parameters error handler allcycles in
-  error, de_tree
+    in
+    let de_tree = build_decision_tree_list parameters error handler allcycles in
+    error, de_tree*)
 
-let print parameters error tree =
-  print_tree
-    parameters error
-    Build_graph.print tree
+
+
+  (*let print parameters error tree =
+    print_tree
+      parameters error
+      Build_graph.print tree*)
