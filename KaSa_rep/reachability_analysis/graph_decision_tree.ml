@@ -76,26 +76,21 @@ let decision_tree_list parameters error handler (allcycle:(((Ckappa_sig.c_site_n
   let ()= Loggers.fprintf (Remanent_parameters.get_logger parameters)
       "START DECISION TREE \n"
   in
-
   (************ END PRINT ************)
 
   let error, trees =
     List.fold_left
       (fun (error,list) cyclelis ->
          (*we need agent_id and not agent_name , so we use cpt for agent_id*)
+
          let cpt = (Ckappa_sig.agent_id_of_int 0 ) in
          let error, graph = Build_graph.init parameters error handler in
 
          let n=List.length cyclelis in
          let sinH,head,southH  = List.hd cyclelis in
-         (*need also head in out*)
 
-         let ()= Loggers.fprintf (Remanent_parameters.get_logger parameters)
-             " FIRST LOOP :  \n"
-         in
-         (**********************)
          let rec build_dtree graph cpt n previousag last_site cyclelis sinH head southH=
-        
+
            if n=1 then
              (*stop case*)
              match cyclelis with
@@ -108,7 +103,8 @@ let decision_tree_list parameters error handler (allcycle:(((Ckappa_sig.c_site_n
 
                    let error, graph =
                      Build_graph.add_site parameters error ag sin graph in
-
+                     (*let error, graph =
+                       Build_graph.add_site parameters error ag sout graph in*)
 
                  let error, graph =
                    Build_graph.add_link parameters error previousag last_site ag sin graph
@@ -122,6 +118,7 @@ let decision_tree_list parameters error handler (allcycle:(((Ckappa_sig.c_site_n
                  (*be sure last_site = sout*)
                  let last_site = sout in
                  let cpt= Ckappa_sig.agent_id_of_int ((Ckappa_sig.int_of_agent_id cpt)+1) in
+                 (*ou grpah site?*)
                  let node_label = graph in
                  (*leaf*)
                  let nonbinded_site_leaf = Node (graph_free,[]) in
@@ -133,19 +130,18 @@ let decision_tree_list parameters error handler (allcycle:(((Ckappa_sig.c_site_n
                  let error, graph = Build_graph.add_site parameters error head sinH graph in
 
                  let error, graphl =
-                   Build_graph.add_link parameters error ag last_site head sinH graph
+                    Build_graph.add_link parameters error ag last_site head sinH graph
                  in
 
                  let node_labell = graphl in
-                 (*we add the link for the cycle*)
+                 (*we add the link for the cycle *)
 
                  let error, graphcy =
                    Build_graph.add_link parameters error ag last_site head
                      sinH graph_site
-                 in
+                   in
 
                  let node_labelcy = graphcy in
-
 
 
                  let repeat_agent_leaf=
@@ -165,33 +161,29 @@ let decision_tree_list parameters error handler (allcycle:(((Ckappa_sig.c_site_n
                begin
                  let error, ag, graph =
                    Build_graph.add_agent parameters error ag graph in
-                 (************ PRINT **********)
-
-                 let ()= Loggers.fprintf (Remanent_parameters.get_logger parameters)
-                     " FIRST CASE : %i \n" (Ckappa_sig.int_of_agent_id ag)
-                 in
-
-                 (************ END PRINT ************)
-
 
                  let error, graph =
 
                    Build_graph.add_site parameters error ag
-                     (*SOUT? NO SURE *)
+                     (*SOUT? try SIN  NO SURE *)
                      sout
                      graph in
+
+                 (*add site  IN >>>> the link added in the stop case does't work ....*)
+                 let error, graph =
+
+                   Build_graph.add_site parameters error ag
+                     (*SOUT? try SIN  NO SURE *)
+                     sin
+                     graph in
+                 (****)
+
 
                  let error, graph_free = Build_graph.add_free parameters error ag
                      (*SOUT? NO SURE *)
                      sout graph
                  in
-                 (************ PRINT **********)
 
-                 let ()= Loggers.fprintf (Remanent_parameters.get_logger parameters)
-                     "        D : %i -[ \n" (Ckappa_sig.int_of_agent_id ag)
-                 in
-
-                 (************ END PRINT ************)
 
 
                  let node_label = graph in
@@ -237,40 +229,25 @@ let decision_tree_list parameters error handler (allcycle:(((Ckappa_sig.c_site_n
                      (*SOUT? NO SURE *)
                      sin graph in
 
-                     let error, graph_site =
 
-                       Build_graph.add_site
-                         parameters error
-                         ag
-                         (*SOUT? NO SURE *)
-                         sout graph in
+                 let error, graph_site =
+
+                   Build_graph.add_site
+                     parameters error
+                     ag
+                     (*SOUT? NO SURE *)
+                     sout graph_site in
 
                  let error, graph =
                    Build_graph.add_link parameters error previousag last_site ag sin graph_site
                  in
                  (*graph_free= the site is free*)
 
-                 (************ PRINT **********)
-
-                 let ()= Loggers.fprintf (Remanent_parameters.get_logger parameters)
-                     " G : %i - %i \n" (Ckappa_sig.int_of_agent_id previousag) (Ckappa_sig.int_of_agent_id ag)
-                 in
-
-                 (************ END PRINT ************)
-
                  let error, graph_free = Build_graph.add_free parameters error cpt
                      (*SOUT? NO SURE *)
                      sout graph_site
 
                  in
-                 (************ PRINT **********)
-
-                 let ()= Loggers.fprintf (Remanent_parameters.get_logger parameters)
-                     " D :%i - %i -[ \n" (Ckappa_sig.int_of_agent_id previousag) (Ckappa_sig.int_of_agent_id ag)
-                 in
-
-                 (************ END PRINT ************)
-
 
                  let last_site = sout in
                  let cpt= Ckappa_sig.agent_id_of_int ((Ckappa_sig.int_of_agent_id cpt)+1) in
@@ -350,9 +327,9 @@ let decision_trees_for_each_cycle parameters error handler cycle =
  ********************************)
 
 let print parameters error tree =
-     print_tree
-       parameters error
-       Build_graph.print tree
+  print_tree
+    parameters error
+    Build_graph.print tree
 
 
 (********************************
@@ -367,17 +344,21 @@ let print_all_tree parameters error handler tree_l=
       "PRINT TREE BEGINNING \n"
   in
 
-  let () = List.iter (fun c ->
-      let () = Loggers.fprintf (Remanent_parameters.get_logger parameters)
-          "\n"
-      in
-      List.iter (fun c -> let error = print
-                              parameters
-                              error
-                              c
-                  in ()) c
-    )tree_l
-  in  error
+    let () = List.iter (fun c ->
+        let () = Loggers.fprintf (Remanent_parameters.get_logger parameters)
+            "new trees\n "
+        in
+        List.iter (fun c ->   let error = print
+                                parameters
+                                error
+                                c
+in
+                                let () = Loggers.fprintf (Remanent_parameters.get_logger parameters)
+                                    "\n \n"
+
+                    in ()) c
+      )tree_l
+    in  error
 
   (*let print_all_tree parameters error handler cycles =
 

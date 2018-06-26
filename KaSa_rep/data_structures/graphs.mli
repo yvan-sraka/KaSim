@@ -49,6 +49,7 @@ val compute_scc :
   val give_cycle :
   Remanent_parameters_sig.parameters ->
   Exception.method_handler->
+    Cckappa_sig.kappa_handler ->
   Cckappa_sig.mixture ->
   Exception.method_handler *
   ((Ckappa_sig.c_site_name * Ckappa_sig.c_agent_name * Ckappa_sig.c_site_name) list list)

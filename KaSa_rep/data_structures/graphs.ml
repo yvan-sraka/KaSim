@@ -55,23 +55,25 @@ type ('node_labels,'edge_labels) graph =
       print
       new_tab
   in
-  error, new_tab
-*)
+  error, new_tab*)
+
+
 (*copy and don't print*)
-  let copy_tab parameter error tab =
+       let copy_tab parameter error tab =
     (*print function *)
-    (*let _ = Loggers.fprintf (Remanent_parameters.get_logger parameter)
-        "START COPY \n" in*)
+         (*  let _ = Loggers.fprintf (Remanent_parameters.get_logger parameter)
+             "START COPY \n" in*)
 
     let error, dim = Fixed_size_array.dimension parameter error tab in
     let error, new_tab = Fixed_size_array.expand_and_copy parameter error tab (dim+1) in
-    error, new_tab
+      error, new_tab
 
 
 let print_node =
     (fun parameters error n ->
        let () = Loggers.fprintf (Remanent_parameters.get_logger parameters)
-           "%i\n" n       in error)
+           "%i\n" n    in error)
+
 let print_edges =
   (fun parameters error l ->
      let error =
@@ -84,12 +86,49 @@ let print_edges =
      let () = Loggers.print_newline (Remanent_parameters.get_logger parameters)
      in error)
 
+        (*PRINT TEST IN PROGRESS*)
+
+(*let print_node =
+  (fun parameters error i  ->
+     let () =
+       Loggers.fprintf
+         (Remanent_parameters.get_logger parameters)
+         " test;\n"
+       in
+     error)
+
+let print_edges =
+  (fun parameters error l ->
+     let () =
+       Loggers.fprintf
+         (Remanent_parameters.get_logger parameters)
+         "test:"
+     in
+     let error =
+       List.fold_left
+         (fun error (j,_) ->
+            let () =
+              Loggers.fprintf
+                (Remanent_parameters.get_logger parameters)
+                "%i," j
+            in
+            error)
+         error
+         l
+     in
+     let () =
+       Loggers.print_newline
+         (Remanent_parameters.get_logger parameters)
+     in
+     error)*)
+(*********)
+
 (*copy and print*)
 (*let copy parameters error graph =
   let error, node_labels = copy_tab parameters error print_node graph.node_labels in
   let error, edges = copy_tab parameters error print_edges graph.edges in
-  error, {node_labels;edges}
-*)
+  error, {node_labels;edges}*)
+
 (*copy and don't print*)
 let copy parameters error graph =
   let error, node_labels = copy_tab parameters error graph.node_labels in
@@ -532,7 +571,7 @@ let filter_graph parameters error graph tabbool =
   error, {edges ; node_labels}
 
 (*in the graph, make sure that each egde has only one successor and if so returns
-  the list of edge in the right order
+  the list of edge (key ?) in the right order
   take in argument the graph filtered and the first key with an non empty element*)
 
 let edgeList_onesuccess parameters error graphEdges key =
@@ -696,6 +735,13 @@ let mixture_to_graph parameters error (mixture :Cckappa_sig.mixture) =
               let ag_id' = address.Cckappa_sig.agent_index in
               let site'' = address.Cckappa_sig.site in
               let error, node'', cpt = translate parameters error (ag_id',site'') cpt in
+              (******************)
+              let ()= Loggers.fprintf (Remanent_parameters.get_logger parameters)
+                  " out  (age',site'') : %s , %s \n "
+                  (Ckappa_sig.string_of_agent_id ag_id')
+                  (Ckappa_sig.string_of_site_name site'')
+              in
+              (******************)
               let listnode = node::listnode in
               Ckappa_sig.Site_map_and_set.Map.fold
                 (fun site' _ (error, (listnode, listedge, cpt)) ->
@@ -703,6 +749,17 @@ let mixture_to_graph parameters error (mixture :Cckappa_sig.mixture) =
                      (error, (listnode, listedge,  cpt))
                    else
                      let error, node',cpt = translate parameters error (ag_id,site') cpt in
+
+                     (******************)
+                     let ()= Loggers.fprintf (Remanent_parameters.get_logger parameters)
+                         "site, in :(age_id,site') : %s,( %s , %s ) \n "
+                         (Ckappa_sig.string_of_site_name site)
+                         (Ckappa_sig.string_of_agent_id ag_id)
+                         (Ckappa_sig.string_of_site_name site')
+
+                     in
+                     (******************)
+
                      (error, (listnode, (node',site,node'')::listedge, cpt))
                 )
                 map
@@ -733,8 +790,14 @@ let mixture_to_graph parameters error (mixture :Cckappa_sig.mixture) =
 from a mixture for each cycle give a list of all edges of this cycle
 ********************************)
 
-let give_cycle  parameters error (mixture :Cckappa_sig.mixture) =
-
+let give_cycle  parameters error handler (mixture :Cckappa_sig.mixture) =
+  (*****function print*)
+  let ()= Loggers.fprintf (Remanent_parameters.get_logger parameters)
+      "MIXTURE \n"
+  in
+  let error =
+Print_cckappa.print_mixture parameters error handler mixture in
+(*****function print*)
   let newgraph= mixture_to_graph parameters error mixture in
 
   let error,lis = compute_scc_and_remove_one_element_list newgraph in
@@ -756,6 +819,14 @@ let give_cycle  parameters error (mixture :Cckappa_sig.mixture) =
            List.fold_left (fun (error,list) source ->
                let error, edg_list = Fixed_size_array.get parameters error source newgraph.edges
                in
+
+               (*******)
+               let ()= Loggers.fprintf (Remanent_parameters.get_logger parameters)
+                   " source : %i  \n "
+                   (source)
+
+               in
+               (*******)
                match edg_list with
                | Some [_,outcoming_site] ->
                  begin
@@ -803,8 +874,21 @@ let give_cycle  parameters error (mixture :Cckappa_sig.mixture) =
                                    | error, None ->
                                      Exception.warn parameters error __POS__ Exit list
                                    | error, Some address ->
+
+                                     (*****PRINT****)
+                                     let ()= Loggers.fprintf (Remanent_parameters.get_logger parameters)
+                                         "in, NODE,out: %s , %s , %s \n "
+                                         (Ckappa_sig.string_of_site_name incoming_site)
+                                         (Ckappa_sig.string_of_agent_name proper_agent.Cckappa_sig.agent_name)
+                                         (Ckappa_sig.string_of_site_name address.Cckappa_sig.site)
+                                     in
+
+                                     (*******PR_END****)
+
+
                                      error,(incoming_site,proper_agent.Cckappa_sig.agent_name,address.Cckappa_sig.site)
                                            ::list
+
                                  end
                              end
                          end

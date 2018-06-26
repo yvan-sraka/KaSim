@@ -1,6 +1,6 @@
 (* for each right member find all the cycles *)
 
-let find_cycle parameters error (compil:Cckappa_sig.compil)=
+let find_cycle parameters error handler (compil:Cckappa_sig.compil)=
 
 
   (*tranforme compil into right member*)
@@ -26,7 +26,7 @@ let find_cycle parameters error (compil:Cckappa_sig.compil)=
               enrule.Cckappa_sig.e_rule_c_rule.Cckappa_sig.rule_rhs in
 
             (* transforme the mixture into a graph  and give all the cycle*)
-            let error,cycleingraph = Graphs.give_cycle parameters error mixture in
+            let error,cycleingraph = Graphs.give_cycle parameters error handler mixture in
 
               cycleingraph
           end
