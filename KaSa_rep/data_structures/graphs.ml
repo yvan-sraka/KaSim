@@ -712,7 +712,7 @@ let translate parameters error site_address (nodes_to_cpt, cpt_to_nodes,cpt) =
     (nodes_to_cpt,cpt_to_nodes,cpt+1)
 
 (*transforme a mixture into a graph *)
-let mixture_to_graph parameters error (mixture :Cckappa_sig.mixture) =
+let mixture_to_graph parameters handler error (mixture :Cckappa_sig.mixture) =
   (*initiate lists for the graph *)
   let (listnode : node list) = [] in
   let (listedge : (node * Ckappa_sig.c_site_name * node) list )= [] in
@@ -729,33 +729,111 @@ let mixture_to_graph parameters error (mixture :Cckappa_sig.mixture) =
     Ckappa_sig.Agent_id_quick_nearly_Inf_Int_storage_Imperatif.fold
       parameters error
       (fun parameters error ag_id map (listnode, listedge, cpt) ->
+         let error, agent_type_internal =
+           match
+             Ckappa_sig.Agent_id_quick_nearly_Inf_Int_storage_Imperatif.get
+               parameters
+               error
+               ag_id
+               mixture.Cckappa_sig.views
+           with
+           | error,
+             (None
+             | Some
+                 (Cckappa_sig.Ghost | Cckappa_sig.Dead_agent _
+                 | Cckappa_sig.Unknown_agent _)) ->
+             Exception.warn parameters error __POS__ Exit
+               (Ckappa_sig.dummy_agent_name)
+           | error, Some (Cckappa_sig.Agent ag) ->
+             error, ag.Cckappa_sig.agent_name
+         in
+         let error, agent_type =
+           Handler.translate_agent
+             parameters error handler
+             agent_type_internal
+         in
          Ckappa_sig.Site_map_and_set.Map.fold
            (fun site address (error, (listnode, listedge, cpt)) ->
+              let error, site_name =
+                match
+                  Handler.translate_site
+                    parameters error handler
+                    agent_type_internal site
+                with
+                | error, Ckappa_sig.Binding s -> error, s
+                | error, (Ckappa_sig.Internal _ | Ckappa_sig.Counter _ )
+                  -> Exception.warn parameters error __POS__ Exit ""
+              in
               let error, node, cpt = translate parameters error (ag_id,site) cpt in
               let ag_id' = address.Cckappa_sig.agent_index in
+              let error, agent_type_internal' =
+                match
+                  Ckappa_sig.Agent_id_quick_nearly_Inf_Int_storage_Imperatif.get
+                    parameters
+                    error
+                    ag_id'
+                    mixture.Cckappa_sig.views
+                with
+                | error,
+                  (None
+                  | Some
+                      (Cckappa_sig.Ghost | Cckappa_sig.Dead_agent _
+                      | Cckappa_sig.Unknown_agent _)) ->
+                    Exception.warn parameters error __POS__ Exit
+                      (Ckappa_sig.dummy_agent_name)
+                | error, Some (Cckappa_sig.Agent ag) ->
+                  error, ag.Cckappa_sig.agent_name
+              in
+              let error, agent_type' =
+                Handler.translate_agent
+                  parameters error handler
+                  agent_type_internal'
+              in
               let site'' = address.Cckappa_sig.site in
+              let error, site_name'' =
+                match
+                  Handler.translate_site
+                    parameters error handler
+                    agent_type_internal' site''
+                with
+                | error, Ckappa_sig.Binding s -> error, s
+                | error, (Ckappa_sig.Internal _ | Ckappa_sig.Counter _ )
+                  -> Exception.warn parameters error __POS__ Exit ""
+              in
               let error, node'', cpt = translate parameters error (ag_id',site'') cpt in
               (******************)
               let ()= Loggers.fprintf (Remanent_parameters.get_logger parameters)
-                  " out  (age',site'') : %s , %s \n "
+                  " out  (age',site'') : %s#%s.%s \n "
+                  agent_type'
                   (Ckappa_sig.string_of_agent_id ag_id')
-                  (Ckappa_sig.string_of_site_name site'')
+                  site_name''
               in
               (******************)
               let listnode = node::listnode in
               Ckappa_sig.Site_map_and_set.Map.fold
                 (fun site' _ (error, (listnode, listedge, cpt)) ->
+                   let error, site_name' =
+                     match
+                       Handler.translate_site
+                         parameters error handler
+                         agent_type_internal site'
+                     with
+                     | error, Ckappa_sig.Binding s -> error, s
+                     | error, (Ckappa_sig.Internal _ | Ckappa_sig.Counter _ )
+                       -> Exception.warn parameters error __POS__ Exit ""
+                   in
                    if site=site' then
                      (error, (listnode, listedge,  cpt))
                    else
-                     let error, node',cpt = translate parameters error (ag_id,site') cpt in
+                     (* let error, node',cpt = translate parameters error (ag_id,site') cpt in*)
 
                      (******************)
                      let ()= Loggers.fprintf (Remanent_parameters.get_logger parameters)
-                         "site, in :(age_id,site') : %s,( %s , %s ) \n "
-                         (Ckappa_sig.string_of_site_name site)
+                         "site, in :(age_id,site') : %s,( %s#%s , %s ) \n "
+                         site_name
+                         agent_type
                          (Ckappa_sig.string_of_agent_id ag_id)
-                         (Ckappa_sig.string_of_site_name site')
+                         site_name'
 
                      in
                      (******************)
@@ -795,10 +873,9 @@ let give_cycle  parameters error handler (mixture :Cckappa_sig.mixture) =
   let ()= Loggers.fprintf (Remanent_parameters.get_logger parameters)
       "MIXTURE \n"
   in
-  let error =
-Print_cckappa.print_mixture parameters error handler mixture in
+  let error = Print_cckappa.print_mixture parameters error handler mixture in
 (*****function print*)
-  let newgraph= mixture_to_graph parameters error mixture in
+  let newgraph= mixture_to_graph parameters handler error mixture in
 
   let error,lis = compute_scc_and_remove_one_element_list newgraph in
 
@@ -874,13 +951,50 @@ Print_cckappa.print_mixture parameters error handler mixture in
                                    | error, None ->
                                      Exception.warn parameters error __POS__ Exit list
                                    | error, Some address ->
-
+                                     let error, agent_name =
+                                       Handler.translate_agent parameters error
+                                         handler proper_agent.Cckappa_sig.agent_name
+                                     in
+                                     let error, incoming_site_name =
+                                       match
+                                         Handler.translate_site parameters error
+                                           handler
+                                           proper_agent.Cckappa_sig.agent_name
+                                           incoming_site
+                                       with
+                                       | error,Ckappa_sig.Binding s -> error, s
+                                       | error,
+                                         ( Ckappa_sig.Internal _
+                                         | Ckappa_sig.Counter _)
+                                         ->
+                                         Exception.warn
+                                           parameters error __POS__
+                                           Exit
+                                           ""
+                                     in
+                                     let error, outcoming_site_name =
+                                       match
+                                         Handler.translate_site parameters error
+                                           handler
+                                           proper_agent.Cckappa_sig.agent_name
+                                           address.Cckappa_sig.site
+                                           with
+                                           | error,Ckappa_sig.Binding s -> error, s
+                                           | error,
+                                             ( Ckappa_sig.Internal _
+                                             | Ckappa_sig.Counter _)
+                                             ->
+                                             Exception.warn
+                                               parameters error __POS__
+                                               Exit
+                                               ""
+                                     in
                                      (*****PRINT****)
                                      let ()= Loggers.fprintf (Remanent_parameters.get_logger parameters)
                                          "in, NODE,out: %s , %s , %s \n "
-                                         (Ckappa_sig.string_of_site_name incoming_site)
-                                         (Ckappa_sig.string_of_agent_name proper_agent.Cckappa_sig.agent_name)
-                                         (Ckappa_sig.string_of_site_name address.Cckappa_sig.site)
+                                         incoming_site_name
+                                         agent_name
+                                         outcoming_site_name
                                      in
 
                                      (*******PR_END****)
