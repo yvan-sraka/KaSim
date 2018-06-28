@@ -825,7 +825,7 @@ let mixture_to_graph parameters handler error (mixture :Cckappa_sig.mixture) =
                    if site=site' then
                      (error, (listnode, listedge,  cpt))
                    else
-                     (* let error, node',cpt = translate parameters error (ag_id,site') cpt in*)
+                      let error, node',cpt = translate parameters error (ag_id,site') cpt in
 
                      (******************)
                      let ()= Loggers.fprintf (Remanent_parameters.get_logger parameters)
@@ -905,11 +905,11 @@ let give_cycle  parameters error handler (mixture :Cckappa_sig.mixture) =
                in
                (*******)
                match edg_list with
-               | Some [_,outcoming_site] ->
+               | Some [_,source_outcoming_site] ->
                  begin
                    match Fixed_size_array.get parameters error source newgraph.node_labels with
                    | error, None ->   Exception.warn parameters error __POS__ Exit list
-                   | error, Some (source_id,incoming_site) ->
+                   | error, Some (source_id,source_incoming_site) ->
                      begin
                        match
                          Ckappa_sig.Agent_id_quick_nearly_Inf_Int_storage_Imperatif.get
@@ -919,12 +919,12 @@ let give_cycle  parameters error handler (mixture :Cckappa_sig.mixture) =
                        with
                        | error, None ->
                          Exception.warn parameters error __POS__ Exit list
-                       | error, Some source_name ->
+                       | error, Some source_agent ->
 
 
                          begin
                            match
-                             source_name
+                             source_agent
                            with
                            | Cckappa_sig.Ghost|Cckappa_sig.Unknown_agent _ ->
                              Exception.warn parameters error __POS__ Exit list
@@ -932,6 +932,28 @@ let give_cycle  parameters error handler (mixture :Cckappa_sig.mixture) =
                            | Cckappa_sig.Dead_agent (proper_agent,_,_,_) ->
 
                              begin
+                               let error, source_agent_name =
+                                 Handler.translate_agent
+                                   parameters error handler
+                                   proper_agent.Cckappa_sig.agent_name
+                               in
+                               let error, source_outcoming_site_name =
+                                 match
+                                   Handler.translate_site parameters error
+                                     handler
+                                     proper_agent.Cckappa_sig.agent_name
+                                     source_outcoming_site
+                                 with
+                                 | error,Ckappa_sig.Binding s -> error, s
+                                 | error,
+                                   ( Ckappa_sig.Internal _
+                                   | Ckappa_sig.Counter _)
+                                   ->
+                                   Exception.warn
+                                     parameters error __POS__
+                                     Exit
+                                     ""
+                               in
                                match
                                  Ckappa_sig.Agent_id_quick_nearly_Inf_Int_storage_Imperatif.get
                                    parameters error
@@ -945,22 +967,23 @@ let give_cycle  parameters error handler (mixture :Cckappa_sig.mixture) =
                                    match
                                      Ckappa_sig.Site_map_and_set.Map.find_option
                                        parameters error
-                                       outcoming_site
+                                       source_outcoming_site
                                        map
                                    with
                                    | error, None ->
                                      Exception.warn parameters error __POS__ Exit list
                                    | error, Some address ->
-                                     let error, agent_name =
+                                     let error, target_agent_name =
                                        Handler.translate_agent parameters error
-                                         handler proper_agent.Cckappa_sig.agent_name
+                                         handler
+                                         address.Cckappa_sig.agent_type
                                      in
-                                     let error, incoming_site_name =
+                                     let error, source_incoming_site_name =
                                        match
                                          Handler.translate_site parameters error
                                            handler
                                            proper_agent.Cckappa_sig.agent_name
-                                           incoming_site
+                                           source_incoming_site
                                        with
                                        | error,Ckappa_sig.Binding s -> error, s
                                        | error,
@@ -972,11 +995,11 @@ let give_cycle  parameters error handler (mixture :Cckappa_sig.mixture) =
                                            Exit
                                            ""
                                      in
-                                     let error, outcoming_site_name =
+                                     let error, target_incoming_site_name =
                                        match
                                          Handler.translate_site parameters error
                                            handler
-                                           proper_agent.Cckappa_sig.agent_name
+                                           address.Cckappa_sig.agent_type
                                            address.Cckappa_sig.site
                                            with
                                            | error,Ckappa_sig.Binding s -> error, s
@@ -991,16 +1014,18 @@ let give_cycle  parameters error handler (mixture :Cckappa_sig.mixture) =
                                      in
                                      (*****PRINT****)
                                      let ()= Loggers.fprintf (Remanent_parameters.get_logger parameters)
-                                         "in, NODE,out: %s , %s , %s \n "
-                                         incoming_site_name
-                                         agent_name
-                                         outcoming_site_name
+                                         "Source %s.%s.%s Target %s.%s \n"
+                                         source_incoming_site_name
+                                         source_agent_name
+                                         source_outcoming_site_name
+                                         target_incoming_site_name
+                                         target_agent_name
                                      in
 
                                      (*******PR_END****)
 
 
-                                     error,(incoming_site,proper_agent.Cckappa_sig.agent_name,address.Cckappa_sig.site)
+                                     error,(source_incoming_site,proper_agent.Cckappa_sig.agent_name,source_outcoming_site)
                                            ::list
 
                                  end
