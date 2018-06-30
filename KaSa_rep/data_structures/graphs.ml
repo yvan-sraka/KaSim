@@ -1039,7 +1039,7 @@ let give_cycle  parameters error handler (mixture :Cckappa_sig.mixture) =
                  Exception.warn parameters error __POS__ Exit list
              ) (error, []) list
          in
-         error, new_list::main_list)
+         error, (List.rev new_list)::main_list)
       (error, [])
       (List.rev result)
   in

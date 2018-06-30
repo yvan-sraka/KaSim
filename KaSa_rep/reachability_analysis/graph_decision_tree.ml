@@ -37,6 +37,10 @@ let rec build_tree n =
           parameters error
           node_label
       in
+      let () =
+        Loggers.print_newline
+          (Remanent_parameters.get_logger parameters)
+      in
       let error =
         List.fold_left
           (fun error non_empty_tree ->
@@ -57,11 +61,6 @@ let rec build_tree n =
     error
   | Non_empty non_empty_tree -> aux parameters non_empty_tree 0 error
 
-  (*let tree = build_tree 3
-
-  let () = print_tree Format.std_formatter string_of_int tree*)
-
-(*let build_decision_tree = ()*)
 
 
 
@@ -83,189 +82,158 @@ let decision_tree_list parameters error handler (allcycle:(((Ckappa_sig.c_site_n
       (fun (error,list) cyclelis ->
          (*we need agent_id and not agent_name , so we use cpt for agent_id*)
 
-         let cpt = (Ckappa_sig.agent_id_of_int 0 ) in
          let error, graph = Build_graph.init parameters error handler in
 
-         let n=List.length cyclelis in
-         let sinH,head,southH  = List.hd cyclelis in
-
-         let rec build_dtree graph cpt n previousag last_site cyclelis sinH head southH=
-
-           if n=1 then
-             (*stop case*)
-             match cyclelis with
-             | [] -> Empty
-             | (sin,ag_name,sout)::tail ->
+         match
+           cyclelis
+         with
+         | [] -> error, list
+         | (first_agent_incoming_site, first_agent_name, first_agent_outcoming_site)::tail
+           ->
+           let error, first_agent_id, graph =
+             Build_graph.add_agent
+               parameters error
+               first_agent_name
+               graph
+           in
+           let rec
+             build_dtree
+               error
+               graph nodelist
+               previous_agent_id previous_agent_outcoming_site
+               first_agent_id first_agent_type first_agent_incoming_site =
+             match nodelist with
+             | [] ->
                begin
-
-                 let error, ag, graph =
-                   Build_graph.add_agent parameters error ag_name graph in
-
-                   let error, graph =
-                     Build_graph.add_site parameters error ag sin graph in
-                     (*let error, graph =
+                 let node_label = graph in
+                 let error, graph =
+                   Build_graph.add_site
+                     parameters error previous_agent_id previous_agent_outcoming_site graph
+                 in
+                 (*let error, graph =
                        Build_graph.add_site parameters error ag sout graph in*)
 
-                 let error, graph =
-                   Build_graph.add_link parameters error previousag last_site ag sin graph
+                 (*graph_free= the site is free*)
+                 let error, graph_free =
+                   Build_graph.add_free
+                     parameters error
+                     previous_agent_id
+                     previous_agent_outcoming_site
+                     graph
                  in
 
-                 (*graph_free= the site is free*)
-                 let error, graph_site = Build_graph.add_site parameters error ag sout graph in
-
-                 let error, graph_free = Build_graph.add_free parameters error ag sout graph_site in
-
-                 (*be sure last_site = sout*)
-                 let last_site = sout in
-                 let cpt= Ckappa_sig.agent_id_of_int ((Ckappa_sig.int_of_agent_id cpt)+1) in
-                 (*ou grpah site?*)
-                 let node_label = graph in
-                 (*leaf*)
                  let nonbinded_site_leaf = Node (graph_free,[]) in
 
                  (**)
-                 let error, head, graph =
-                   Build_graph.add_agent parameters error head graph_site in
-
-                 let error, graph = Build_graph.add_site parameters error head sinH graph in
-
-                 let error, graphl =
-                    Build_graph.add_link parameters error ag last_site head sinH graph
+                 let error, graph_cycle =
+                   Build_graph.add_site
+                     parameters error
+                     first_agent_id first_agent_incoming_site
+                     graph
                  in
 
-                 let node_labell = graphl in
-                 (*we add the link for the cycle *)
+                 let error, graph_cycle =
+                   Build_graph.add_link
+                     parameters error
+                     previous_agent_id previous_agent_outcoming_site
+                     first_agent_id first_agent_incoming_site
+                     graph_cycle
+                 in
 
-                 let error, graphcy =
-                   Build_graph.add_link parameters error ag last_site head
-                     sinH graph_site
-                   in
+                 let error, fresh_agent_id, graph_fresh_agent =
+                   Build_graph.add_agent
+                     parameters error
+                     first_agent_type
+                     graph
+                 in
+                 let error, graph_fresh_agent =
+                   Build_graph.add_site
+                     parameters error
+                     fresh_agent_id first_agent_incoming_site
+                     graph_fresh_agent
+                 in
 
-                 let node_labelcy = graphcy in
-
-
+                 let error, graph_fresh_agent =
+                   Build_graph.add_link
+                     parameters error
+                     previous_agent_id previous_agent_outcoming_site
+                     fresh_agent_id first_agent_incoming_site
+                     graph_fresh_agent
+                 in
                  let repeat_agent_leaf=
-                   Node (node_labell,[])
+                   Node (graph_fresh_agent,[])
                  in
-                 let cycle_leaf = Node(node_labelcy,[])
+                 let cycle_leaf = Node(graph_cycle,[])
                  in
+                 error,
                  Non_empty (Node (node_label,[cycle_leaf;repeat_agent_leaf;nonbinded_site_leaf]))
                end
                (*second case*)
-           else
-             (* only the first case : peut etre pas besoin ? *)
-           if (Ckappa_sig.int_of_agent_id cpt)=0 then
-             match cyclelis with
-             | [] -> Empty
-             | (sin,ag,sout)::tail ->
+             | (next_agent_incoming_site,
+                next_agent_name,
+                next_agent_outcoming_site)::tail ->
                begin
-                 let error, ag, graph =
-                   Build_graph.add_agent parameters error ag graph in
-
-                 let error, graph =
-
-                   Build_graph.add_site parameters error ag
-                     (*SOUT? try SIN  NO SURE *)
-                     sout
-                     graph in
-
-                 (*add site  IN >>>> the link added in the stop case does't work ....*)
-                 let error, graph =
-
-                   Build_graph.add_site parameters error ag
-                     (*SOUT? try SIN  NO SURE *)
-                     sin
-                     graph in
-                 (****)
-
-
-                 let error, graph_free = Build_graph.add_free parameters error ag
-                     (*SOUT? NO SURE *)
-                     sout graph
-                 in
-
-
-
                  let node_label = graph in
-
-                 let cpt= Ckappa_sig.agent_id_of_int ((Ckappa_sig.int_of_agent_id cpt)+1) in
-                 (*be sure last_site = sout?*)
-                 let last_site = sout in
-                 let left_potentially_empty_tree =
-                   build_dtree graph
-                     cpt
-                     (n-1)
-                     ag
-                     last_site
-                     tail sinH head southH in
-
+                 let error, graph =
+                   Build_graph.add_site
+                     parameters error
+                     previous_agent_id
+                     previous_agent_outcoming_site
+                     graph
+                 in
+                 let error, graph_free =
+                   Build_graph.add_free
+                     parameters error
+                     previous_agent_id
+                     previous_agent_outcoming_site
+                     graph
+                 in
+                 let error, next_agent_id, graph =
+                   Build_graph.add_agent
+                     parameters error next_agent_name graph
+                 in
+                 let error, graph_fresh_agent =
+                     Build_graph.add_site
+                       parameters error
+                       next_agent_id
+                       next_agent_incoming_site  graph
+                 in
+                 let error, graph_fresh_agent =
+                   Build_graph.add_link
+                     parameters error
+                     previous_agent_id previous_agent_outcoming_site
+                     next_agent_id next_agent_incoming_site
+                     graph_fresh_agent
+                 in
+                 let error, left_potentially_empty_tree =
+                   build_dtree
+                     error
+                     graph_fresh_agent tail
+                     next_agent_id next_agent_outcoming_site
+                     first_agent_id first_agent_type first_agent_incoming_site
+                 in
                  let right_non_empty_tree = Node (graph_free,[]) in
                  match
                    left_potentially_empty_tree
                  with
                  | Empty ->
-                   Non_empty (Node (node_label,[]))
+                   Exception.warn parameters error __POS__ Exit
+                     (Non_empty (Node (node_label,[right_non_empty_tree])))
                  | Non_empty left_non_empty_tree ->
-                   Non_empty (Node (node_label,[left_non_empty_tree;right_non_empty_tree]))
-               end
-
-           (*  everything except first case  *)
-           else
-             match cyclelis with
-             | [] -> Empty
-             | (sin,ag,sout)::tail ->
-               (*let error, graph =
-                 Build_graph.add_link parameters error ag_id st ag_id' st' graph*)
-               begin
-                 let error, ag, graph =
-                   Build_graph.add_agent parameters error ag graph in
-                 (*we need agent_id and not agent_name , so we use cpt for agent_id*)
-
-                 let error, graph_site =
-
-                   Build_graph.add_site
-                     parameters error
-                     ag
-                     (*SOUT? NO SURE *)
-                     sin graph in
-
-
-                 let error, graph_site =
-
-                   Build_graph.add_site
-                     parameters error
-                     ag
-                     (*SOUT? NO SURE *)
-                     sout graph_site in
-
-                 let error, graph =
-                   Build_graph.add_link parameters error previousag last_site ag sin graph_site
-                 in
-                 (*graph_free= the site is free*)
-
-                 let error, graph_free = Build_graph.add_free parameters error cpt
-                     (*SOUT? NO SURE *)
-                     sout graph_site
-
-                 in
-
-                 let last_site = sout in
-                 let cpt= Ckappa_sig.agent_id_of_int ((Ckappa_sig.int_of_agent_id cpt)+1) in
-                 let node_label = graph in
-                 let left_potentially_empty_tree = build_dtree graph cpt (n-1) ag last_site tail sinH head southH in
-                 let right_non_empty_tree = Node (graph_free,[]) in
-                 match
-                   left_potentially_empty_tree
-                 with
-                 | Empty ->
-                   Non_empty (Node (node_label,[]))
-                 | Non_empty left_non_empty_tree ->
+                   error,
                    Non_empty (Node (node_label,[left_non_empty_tree;right_non_empty_tree]))
                end
          in
          (*previous agent should be null  VERIFY*)
-         let tree =
-           build_dtree graph cpt n Ckappa_sig.dummy_agent_id Ckappa_sig.dummy_site_name cyclelis sinH head southH
+         let error, tree =
+           build_dtree
+             error
+             graph tail
+             first_agent_id
+             first_agent_outcoming_site
+             first_agent_id
+             first_agent_name
+             first_agent_incoming_site
 
          in
          error, tree::list
@@ -344,11 +312,11 @@ let print_all_tree parameters error handler tree_l=
       "PRINT TREE BEGINNING \n"
   in
 
-    let () = List.iter (fun c ->
+    let error = List.fold_left  (fun error c ->
         let () = Loggers.fprintf (Remanent_parameters.get_logger parameters)
             "new trees\n "
         in
-        List.iter (fun c ->   let error = print
+        List.fold_left  (fun error c ->   let error = print
                                 parameters
                                 error
                                 c
@@ -356,8 +324,9 @@ in
                                 let () = Loggers.fprintf (Remanent_parameters.get_logger parameters)
                                     "\n \n"
 
-                    in ()) c
-      )tree_l
+in error)
+          error c
+      ) error tree_l
     in  error
 
   (*let print_all_tree parameters error handler cycles =
