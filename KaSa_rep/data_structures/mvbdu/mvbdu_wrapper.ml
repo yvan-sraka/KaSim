@@ -4,7 +4,7 @@
    * Jérôme Feret, projet Abstraction, INRIA Paris-Rocquencourt
    *
    * Creation: 08/03/2010
-   * Last modification: Time-stamp: <Feb 22 2018>
+   * Last modification: Time-stamp: <Oct 22 2018>
    * *
    * This library provides test benchmarks for the library of sets of finite maps from integers to integers
    *
@@ -147,6 +147,13 @@ sig
     ('data,'data,'data) binary ->
     (mvbdu,'data,'map,'map) ternary
 
+  val translate:
+    (mvbdu,hconsed_association_list,mvbdu)
+      binary
+  val cut_and_clean:
+    (mvbdu,hconsed_range_list,mvbdu)
+      binary
+
   val last_entry: (unit,int) unary
   val hash_of_range_list: hconsed_range_list -> int
   val hash_of_association_list: hconsed_association_list -> int
@@ -204,6 +211,9 @@ sig
   val mvbdu_of_range_list: (key * (value option * value option)) list -> mvbdu
   val mvbdu_of_sorted_range_list: (key * (value option * value option)) list -> mvbdu
   val mvbdu_of_reverse_sorted_range_list: (key * (value option * value option)) list -> mvbdu
+
+  val mbvdu_translate: mvbdu -> hconsed_association_list -> mvbdu
+  val mvbdu_cut_and_clean: mvbdu -> hconsed_renaming_list -> mvbdu
 
 
   val mvbdu_rename: mvbdu -> hconsed_renaming_list -> mvbdu
@@ -269,6 +279,7 @@ module Make (M:Nul)  =
     type ('input1,'input2,'output) binary = Remanent_parameters_sig.parameters -> handler ->   Exception.method_handler -> 'input1 -> 'input2 -> Exception.method_handler * handler * 'output
     type ('input1,'input2,'input3,'output) ternary = Remanent_parameters_sig.parameters -> handler -> Exception.method_handler -> 'input1 -> 'input2 -> 'input3 -> Exception.method_handler * handler * 'output
 
+    (*unit -> mvbdu*)
     let lift0 pos f parameters handler error =
       match
         f parameters handler error parameters
@@ -353,7 +364,7 @@ module Make (M:Nul)  =
     let mvbdu_true = lift0 __POS__ Boolean_mvbdu.boolean_mvbdu_true
     let mvbdu_false = lift0 __POS__ Boolean_mvbdu.boolean_mvbdu_false
 
-    let lift1 pos f parameters handler error a =
+    let lift1_mvbdu_mvbdu pos f parameters handler error a =
       match
         f parameters handler error parameters a
       with
@@ -364,25 +375,22 @@ module Make (M:Nul)  =
         in
         error, handler, a
 
-    let lift1bis _string f parameters handler error a =
+    let lift1_association_list_association_list _pos f parameters handler error a =
       let a,(b,c) =
         f (Boolean_mvbdu.association_list_allocate parameters) error parameters handler a
       in a,b,c
 
-    let lift1bisbis _string f parameters handler error (a:(int * (int option * int option)) list) =
+    let lift1_int_int_list_association_list _pos f parameters handler error a =
+        let a,(b,c) =
+          f (Boolean_mvbdu.association_list_allocate parameters) error parameters handler a
+        in a,b,c
+
+
+    let lift1_range_list_range_list  _pos f parameters handler error a =
         let a,(b,c) =
           f (Boolean_mvbdu.range_list_allocate parameters) error parameters handler a
         in a,b,c
 
-    let lift1ter _string f parameters handler error a =
-      let a,(b,c) =
-        f (Boolean_mvbdu.association_list_allocate parameters) parameters error handler a
-      in a,b,c
-
-      let lift1terter _string f parameters handler error a =
-        let a,(b,c) =
-          f (Boolean_mvbdu.range_list_allocate parameters) parameters error handler a
-        in a,b,c
 
     let liftvbis _string f parameters handler error a =
       let a,(b,c) =
@@ -498,7 +506,8 @@ module Make (M:Nul)  =
         in
         error, handler, a
 
-    let (mvbdu_not: (mvbdu,mvbdu) unary) = lift1 __POS__ Boolean_mvbdu.boolean_mvbdu_not
+    let (mvbdu_not: (mvbdu,mvbdu) unary) =
+      lift1_mvbdu_mvbdu __POS__ Boolean_mvbdu.boolean_mvbdu_not
 
     let mvbdu_id _parameters handler error a = error, handler, a
 
@@ -530,24 +539,25 @@ module Make (M:Nul)  =
     let mvbdu_project_keep_only = lift2ter __POS__ Boolean_mvbdu.project_keep_only
     let mvbdu_project_abstract_away = lift2ter __POS__ Boolean_mvbdu.project_abstract_away
 
-    let build_association_list = lift1bis __POS__ List_algebra.build_list
+    let build_association_list =
+      lift1_int_int_list_association_list __POS__ List_algebra.build_list
 
     let build_sorted_association_list =
-      lift1ter __POS__ List_algebra.build_sorted_list
+      lift1_int_int_list_association_list __POS__ List_algebra.build_sorted_list
 
     let build_reverse_sorted_association_list =
-      lift1ter __POS__ List_algebra.build_reversed_sorted_list
+      lift1_association_list_association_list __POS__ List_algebra.build_reversed_sorted_list
 
     let build_range_list =
-      lift1bisbis
+      lift1_range_list_range_list
         __POS__
         List_algebra.build_list
 
     let build_sorted_range_list =
-      lift1terter __POS__ List_algebra.build_sorted_list
+      list1_range_list_range_list __POS__ List_algebra.build_sorted_list
 
     let build_reverse_sorted_range_list =
-      lift1terter __POS__ List_algebra.build_reversed_sorted_list
+      list1_range_list_range_list __POS__ List_algebra.build_reversed_sorted_list
 
 
     let empty_range_list parameter handler error =

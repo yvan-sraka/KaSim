@@ -4,7 +4,7 @@
    * Jérôme Feret, projet Abstraction, INRIA Paris-Rocquencourt
    *
    * Creation: 2010, the 11th of March
-   * Last modification: Time-stamp: <Feb 21 2018>
+   * Last modification: Time-stamp: <Oct 22 2018>
    * *
    * This library provides primitives to deal set of finite maps from integers to integers
    *
@@ -116,6 +116,9 @@ type memo_tables =
     boolean_mvbdu_variables_of_mvbdu: unit List_sig.list Hash_1.t;
 
     boolean_mvbdu_extensional_description_of_mvbdu: (int *int ) list list Hash_1.t;
+
+    boolean_mvbdu_translate: bool Mvbdu_sig.mvbdu Hash_2.t;
+    boolean_mvbdu_cut_and_merge: bool Mvbdu_sig.mvbdu Hash_2.t;
   }
 
 type mvbdu_dic = (bool Mvbdu_sig.cell, bool Mvbdu_sig.mvbdu) D_mvbdu_skeleton.dictionary
@@ -163,7 +166,9 @@ let split_memo error handler =
     "reset:",   x.boolean_mvbdu_redefine;
     "rename:",  x.boolean_mvbdu_monotonicaly_rename;
     "project_onto:", x.boolean_mvbdu_project_keep_only;
-    "project_away:", x.boolean_mvbdu_project_abstract_away;],
+    "project_away:", x.boolean_mvbdu_project_abstract_away;
+    "translate", x.boolean_mvbdu_translate;
+    "cut_and_merge", x.boolean_mvbdu_cut_and_merge],
   [ (* _ -> variables_list *)
     "variables_of:", x.boolean_mvbdu_variables_of_mvbdu;
   ],
@@ -264,6 +269,8 @@ let init_data parameters error =
   let error,mvbdu_variables_of = Hash_1.create parameters error 0 in
   let error,mvbdu_extensional_description_of_mvbdu = Hash_1.create parameters error 0 in
   let error,mvbdu_rename = Hash_2.create parameters error (0,0) in
+  let error,mvbdu_translate = Hash_2.create parameters error (0,0) in
+  let error,mvbdu_cut_and_merge = Hash_2.create parameters error (0,0) in 
   error,
   {
     boolean_mvbdu_clean_head = mvbdu_clean_head ;
@@ -298,6 +305,8 @@ let init_data parameters error =
       mvbdu_extensional_range_list;
     boolean_mvbdu_variables_of_mvbdu = mvbdu_variables_of;
     boolean_mvbdu_extensional_description_of_mvbdu = mvbdu_extensional_description_of_mvbdu;
+    boolean_mvbdu_cut_and_merge = mvbdu_cut_and_merge;
+    boolean_mvbdu_translate = mvbdu_translate;
   }
 
 let init_remanent parameters error =
