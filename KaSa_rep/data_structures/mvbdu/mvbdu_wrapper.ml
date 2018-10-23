@@ -4,7 +4,7 @@
    * Jérôme Feret, projet Abstraction, INRIA Paris-Rocquencourt
    *
    * Creation: 08/03/2010
-   * Last modification: Time-stamp: <Oct 22 2018>
+   * Last modification: Time-stamp: <Oct 23 2018>
    * *
    * This library provides test benchmarks for the library of sets of finite maps from integers to integers
    *
@@ -366,7 +366,7 @@ module Make (M:Nul)  =
 
     let lift1_mvbdu_mvbdu pos f parameters handler error a =
       match
-        f parameters handler error parameters a
+        f parameters handler error a
       with
       | error,(handler,Some a) -> error,handler,a
       | error,(handler,None) ->
@@ -377,41 +377,20 @@ module Make (M:Nul)  =
 
     let lift1_association_list_association_list _pos f parameters handler error a =
       let a,(b,c) =
-        f (Boolean_mvbdu.association_list_allocate parameters) error parameters handler a
+        f (Boolean_mvbdu.association_list_allocate parameters)  parameters handler error a
       in a,b,c
-
-    let lift1_int_int_list_association_list _pos f parameters handler error a =
-        let a,(b,c) =
-          f (Boolean_mvbdu.association_list_allocate parameters) error parameters handler a
-        in a,b,c
-
 
     let lift1_range_list_range_list  _pos f parameters handler error a =
         let a,(b,c) =
-          f (Boolean_mvbdu.range_list_allocate parameters) error parameters handler a
+          f (Boolean_mvbdu.range_list_allocate parameters)  parameters handler error a
         in a,b,c
 
 
-    let liftvbis _string f parameters handler error a =
+    let lift1_variable_list_variable_list
+        _pos f parameters handler error a =
       let a,(b,c) =
-        f (Boolean_mvbdu.variables_list_allocate parameters) error parameters handler (List.rev_map (fun x -> (x,())) a)
+        f (Boolean_mvbdu.variables_list_allocate parameters)  parameters handler error (List.rev_map (fun x -> (x,())) a)
       in a,b,c
-
-    let liftvter _string f parameters handler error a =
-      let a,(b,c) =
-        f (Boolean_mvbdu.variables_list_allocate parameters) parameters error handler (List.rev_map (fun x -> (x,())) a)
-      in a,b,c
-
-    let lift1_ pos f parameters handler error a =
-      match
-        f parameters handler error a
-      with
-      | error,(handler,Some a) -> error,handler,a
-      | error,(handler,None) ->
-        let error, a =
-          Exception.warn parameters error pos  Exit a
-        in
-        error, handler, a
 
     let lift1__ _string f parameters handler error a =
       match
@@ -420,9 +399,9 @@ module Make (M:Nul)  =
       | error,(handler,a) -> error,handler,a
 
 
-    let lift1four buildlist pos f parameters handler error a =
+    let lift1_mvbdu_list buildlist pos f parameters handler error a =
       match
-        f parameters error handler a
+        f parameters handler error a
       with
       | error,(handler,Some a) -> error,handler,a
       | error,(handler,None) ->
@@ -434,7 +413,7 @@ module Make (M:Nul)  =
         in
         error, handler, (a:unit List_sig.list)
 
-    let lift1five pos f parameters handler error a =
+    let lift1_mvbdu_extensional pos f parameters handler error a =
       match
         f parameters error parameters handler a
       with
@@ -447,7 +426,7 @@ module Make (M:Nul)  =
 
     let lift1_seven _string f parameters handler error a =
       match
-        f parameters error handler a
+        f parameters handler error a
       with
       | error,(handler,int) -> error,handler,int
 
@@ -473,20 +452,10 @@ module Make (M:Nul)  =
         in
         error, handler, a
 
-    let lift2ter pos f parameters handler error a b =
-      match
-        f parameters error  parameters handler a b
-      with
-      | error,(handler,Some a) -> error,handler,a
-      | error,(handler,None) ->
-        let error, a =
-          Exception.warn parameters error pos Exit a
-        in
-        error, handler, a
 
     let lift2four pos f parameters handler error a b =
       match
-        f parameters error handler a b
+        f parameters handler error a b
       with
       | error,(handler,Some a) -> error,handler,a
       | error,(handler,None) ->
@@ -497,7 +466,7 @@ module Make (M:Nul)  =
 
     let lift2five pos f parameters handler error a b =
       match
-        f parameters error handler a b
+        f parameters handler error a b
       with
       | error,(handler,Some a) -> error,handler,a
       | error,(handler,None) ->
@@ -536,17 +505,20 @@ module Make (M:Nul)  =
     let mvbdu_redefine_range = lift2bis __POS__ Boolean_mvbdu.redefine_range
 
     let mvbdu_rename = lift2bis __POS__ Boolean_mvbdu.monotonicaly_rename
-    let mvbdu_project_keep_only = lift2ter __POS__ Boolean_mvbdu.project_keep_only
-    let mvbdu_project_abstract_away = lift2ter __POS__ Boolean_mvbdu.project_abstract_away
+    let mvbdu_project_keep_only = lift2bis __POS__ Boolean_mvbdu.project_keep_only
+    let mvbdu_project_abstract_away = lift2bis __POS__ Boolean_mvbdu.project_abstract_away
 
     let build_association_list =
-      lift1_int_int_list_association_list __POS__ List_algebra.build_list
+      lift1_association_list_association_list
+        __POS__ List_algebra.build_list
 
     let build_sorted_association_list =
-      lift1_int_int_list_association_list __POS__ List_algebra.build_sorted_list
+      lift1_association_list_association_list
+        __POS__ List_algebra.build_sorted_list
 
     let build_reverse_sorted_association_list =
-      lift1_association_list_association_list __POS__ List_algebra.build_reversed_sorted_list
+      lift1_association_list_association_list
+        __POS__ List_algebra.build_reversed_sorted_list
 
     let build_range_list =
       lift1_range_list_range_list
@@ -554,10 +526,10 @@ module Make (M:Nul)  =
         List_algebra.build_list
 
     let build_sorted_range_list =
-      list1_range_list_range_list __POS__ List_algebra.build_sorted_list
+      lift1_range_list_range_list __POS__ List_algebra.build_sorted_list
 
     let build_reverse_sorted_range_list =
-      list1_range_list_range_list __POS__ List_algebra.build_reversed_sorted_list
+      lift1_range_list_range_list __POS__ List_algebra.build_reversed_sorted_list
 
 
     let empty_range_list parameter handler error =
@@ -609,34 +581,34 @@ module Make (M:Nul)  =
     let empty_renaming_list = empty_association_list
 
     let build_variables_list 	=
-      liftvbis "line 257, build_list"
+      lift1_variable_list_variable_list "line 257, build_list"
         List_algebra.build_list
 
-    let build_sorted_variables_list = liftvter "line 259, build_list" List_algebra.build_reversed_sorted_list
+    let build_sorted_variables_list = lift1_variable_list_variable_list "line 259, build_list" List_algebra.build_reversed_sorted_list
 
-    let build_reverse_sorted_variables_list = liftvter "line 261, build_list" List_algebra.build_sorted_list
+    let build_reverse_sorted_variables_list = lift1_variable_list_variable_list "line 261, build_list" List_algebra.build_sorted_list
 
     let empty_variables_list parameter handler error = build_variables_list parameter handler error []
 
     let variables_list_of_mvbdu parameter handler error mvbdu =
-      lift1four
+      lift1_mvbdu_list
         build_sorted_variables_list
         __POS__
         Boolean_mvbdu.variables_of_mvbdu
         parameter handler error mvbdu
 
     let extensional_of_association_list parameters handler error l =
-      lift1five
+      lift1_five
         __POS__
         Boolean_mvbdu.extensional_description_of_association_list parameters handler error l
 
     let extensional_of_range_list parameters handler error l =
-          lift1five
+      lift1_mvbdu_extensional
             __POS__
             Boolean_mvbdu.extensional_description_of_range_list parameters handler error l
 
     let extensional_of_variables_list parameters handler error l =
-      lift1five
+      lift1_mvbdu_extensional 
         __POS__
         Boolean_mvbdu.extensional_description_of_variables_list parameters handler error l
 
@@ -649,32 +621,35 @@ module Make (M:Nul)  =
     let print_variables_list = List_algebra.print_variables_list
 
     let mvbdu_clean_head =
-      lift1_ __POS__ Boolean_mvbdu.clean_head
-    let mvbdu_keep_head_only = lift1_ __POS__ Boolean_mvbdu.keep_head_only
+      lift1_mvbdu_mvbdu __POS__ Boolean_mvbdu.clean_head
+
+    let mvbdu_keep_head_only =
+      lift1_mvbdu_mvbdu __POS__ Boolean_mvbdu.keep_head_only
 
     let mvbdu_cartesian_abstraction parameters handler error bdu =
-      let error,handler,bdd_true = mvbdu_true parameters handler error in
-      (*let error = Exception.check_point
-          Exception.warn parameters error error' __POS__ Exit
-      in*)
-      let error,handler,bdd_false = mvbdu_false parameters handler error in
-      (*let error = Exception.check_point
-          Exception.warn parameters error error'' __POS__ Exit
-      in*)
-      let rec aux error handler bdu list =
+      let error,handler,bdd_true =
+        mvbdu_true parameters handler error
+      in
+      let error,handler,bdd_false =
+        mvbdu_false parameters handler error
+      in
+      let rec aux (error:Exception.method_handler) handler bdu list =
         if equal bdu bdd_true || equal bdu bdd_false
         then
           error,handler,List.rev list
         else
-          let error,handler,head = mvbdu_keep_head_only parameters error handler  bdu in
-          (*let error = Exception.check_point
-              Exception.warn parameters error error' __POS__ Exit
-          in*)
-          let error,handler,tail = mvbdu_clean_head parameters error handler bdu in
-          (*let error = Exception.check_point
-              Exception.warn parameters error error'' __POS__ Exit
-          in*)
-          aux error handler tail (head::list)
+          let error,handler,head =
+            mvbdu_keep_head_only
+              parameters handler error bdu
+          in
+          let error,handler,tail =
+            mvbdu_clean_head
+              parameters handler error bdu
+          in
+          aux
+            error
+            handler
+            tail (head::list)
       in aux error handler bdu []
 
     let mvbdu_cartesian_decomposition_depth parameters handler error bdu int =

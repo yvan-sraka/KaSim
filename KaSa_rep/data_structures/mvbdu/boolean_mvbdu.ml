@@ -4,7 +4,7 @@
    * Jérôme Feret, projet Abstraction, INRIA Paris-Rocquencourt
    *
    * Creation: 2010, the 11th of March
-   * Last modification: Time-stamp: <Oct 22 2018>
+   * Last modification: Time-stamp: <Oct 23 2018>
    * *
    * This library provides primitives to deal set of finite maps from integers to integers
    *
@@ -270,7 +270,7 @@ let init_data parameters error =
   let error,mvbdu_extensional_description_of_mvbdu = Hash_1.create parameters error 0 in
   let error,mvbdu_rename = Hash_2.create parameters error (0,0) in
   let error,mvbdu_translate = Hash_2.create parameters error (0,0) in
-  let error,mvbdu_cut_and_merge = Hash_2.create parameters error (0,0) in 
+  let error,mvbdu_cut_and_merge = Hash_2.create parameters error (0,0) in
   error,
   {
     boolean_mvbdu_clean_head = mvbdu_clean_head ;
@@ -418,10 +418,10 @@ let memo_not =
      (fun x h ->
         {h with Memo_sig.data = {h.Memo_sig.data with boolean_mvbdu_not = x}}))
 
-let boolean_mvbdu_not parameters =
+let boolean_mvbdu_not parameters handler error =
   Mvbdu_algebra.generic_unary
     (mvbdu_allocate parameters)
-    memo_not
+    memo_not handler error parameters
 
 let memo_constant_true  =
   Mvbdu_algebra.not_recursive_not_memoize_unary
@@ -714,7 +714,7 @@ let memo_clean_head =
          error
          (Mvbdu_core.id_of_mvbdu mvbdu))
 
-let clean_head parameters error handler =
+let clean_head parameters handler error =
   Mvbdu_algebra.clean_head
     (mvbdu_allocate parameters)
     memo_clean_head
@@ -731,7 +731,7 @@ let memo_clean_head =
     (fun parameters error handler mvbdu d ->
        match Hash_1.unsafe_get parameters error (Mvbdu_core.id_of_mvbdu mvbdu) d with
        | error,None ->
-         clean_head parameters error handler mvbdu
+         clean_head parameters handler error mvbdu
        | error,Some x -> error,(handler,Some x)
     )
     (fun parameters error _h mvbdu ->
@@ -755,7 +755,7 @@ let memo_keep_head_only =
          error
          (Mvbdu_core.id_of_mvbdu mvbdu))
 
-let keep_head_only parameters error handler =
+let keep_head_only parameters handler error =
   Mvbdu_algebra.keep_head_only
     (mvbdu_allocate parameters)
     memo_keep_head_only
@@ -772,7 +772,7 @@ let memo_keep_head_only =
     (fun parameters error handler mvbdu d ->
        match Hash_1.unsafe_get parameters error (Mvbdu_core.id_of_mvbdu mvbdu) d with
        | error,None ->
-         keep_head_only parameters error handler mvbdu
+         keep_head_only parameters handler error mvbdu
        | error,Some x -> error,(handler,Some x)
     )
     (fun parameters error _h mvbdu ->
@@ -1063,7 +1063,7 @@ let extensional_description_of_range_list _parameters (error:Exception.method_ha
     error handler list x (*: int * (int option * int option) list *))
 
 
-let rec variables_of_mvbdu parameters error handler mvbdu =
+let rec variables_of_mvbdu parameters handler error mvbdu =
   match
     Hash_1.unsafe_get parameters error
       mvbdu.Mvbdu_sig.id
@@ -1077,22 +1077,23 @@ let rec variables_of_mvbdu parameters error handler mvbdu =
         | Mvbdu_sig.Leaf _ ->
           let error, (handler, list) =
             List_algebra.build_reversed_sorted_list
-              (variables_list_allocate parameters) parameters error handler
+              (variables_list_allocate parameters)
+              parameters handler error
               []
           in
           error, (handler, Some list)
         | Mvbdu_sig.Node a ->
           let error, (handler, list_false) =
-            variables_of_mvbdu parameters error handler
+            variables_of_mvbdu parameters handler error
               a.Mvbdu_sig.branch_false
           in
           let error, (handler, list_true) =
-            variables_of_mvbdu parameters error handler
+            variables_of_mvbdu parameters handler error
               a.Mvbdu_sig.branch_true
           in
           let error, (handler, singleton) =
             List_algebra.build_reversed_sorted_list
-              (variables_list_allocate parameters) parameters error handler
+              (variables_list_allocate parameters) parameters handler error
               [a.Mvbdu_sig.variable, ()]
           in
           begin

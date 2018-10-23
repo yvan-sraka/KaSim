@@ -4,7 +4,7 @@
    * Jérôme Feret, projet Abstraction, INRIA Paris-Rocquencourt
    *
    * Creation: 08/03/2010
-   * Last modification: Time-stamp: <Feb 21 2018>
+   * Last modification: Time-stamp: <Oct 23 2018>
    * *
    * This library provides primitives to deal set of finite maps from integers to integers
    *
@@ -43,7 +43,7 @@ let build_reversed_sorted_list_aux
     (error, (handler, already))
     list
 
-let build_reversed_sorted_list allocate parameters error handler  list =
+let build_reversed_sorted_list allocate parameters handler error list =
   let error,output =
     List_core.build_list
       allocate
@@ -67,12 +67,12 @@ let build_reversed_sorted_list allocate parameters error handler  list =
        {List_sig.id = 0;
         List_sig.value = List_sig.Empty})
 
-let build_sorted_list allocate parameters error handler list =
-  build_reversed_sorted_list allocate parameters error handler (List.rev list)
+let build_sorted_list allocate parameters handler error list =
+  build_reversed_sorted_list allocate parameters handler error (List.rev list)
 
-let build_list allocate parameters error handler list =
+let build_list allocate parameters handler error list =
   let sort (i,_) (j,_) = - (compare i j) in
-  build_reversed_sorted_list allocate error parameters handler (List.sort sort list)
+  build_reversed_sorted_list allocate parameters handler error (List.sort sort list)
 
 let rec print_cell parameter cell =
   match cell with
