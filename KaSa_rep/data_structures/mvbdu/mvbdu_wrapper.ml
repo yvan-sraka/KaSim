@@ -150,7 +150,7 @@ sig
   val translate:
     (mvbdu,hconsed_association_list,mvbdu)
       binary
-  val cut_and_clean:
+  val cut_and_merge:
     (mvbdu,hconsed_range_list,mvbdu)
       binary
 
@@ -212,8 +212,8 @@ sig
   val mvbdu_of_sorted_range_list: (key * (value option * value option)) list -> mvbdu
   val mvbdu_of_reverse_sorted_range_list: (key * (value option * value option)) list -> mvbdu
 
-  val mbvdu_translate: mvbdu -> hconsed_association_list -> mvbdu
-  val mvbdu_cut_and_clean: mvbdu -> hconsed_renaming_list -> mvbdu
+  val mvbdu_translate: mvbdu -> hconsed_association_list -> mvbdu
+  val mvbdu_cut_and_merge: mvbdu -> hconsed_range_list -> mvbdu
 
 
   val mvbdu_rename: mvbdu -> hconsed_renaming_list -> mvbdu
@@ -424,13 +424,28 @@ module Make (M:Nul)  =
         in
         error, handler, a
 
-    let lift1_seven _string f parameters handler error a =
+    let lift1_list_extensional
+        pos f parameters handler error a =
+      match
+        f parameters error parameters handler a
+      with
+      | error,(handler,Some a) -> error,handler,a
+      | error,(handler,None) ->
+        let error, a =
+          Exception.warn parameters error pos Exit []
+        in
+        error, handler, a
+
+
+    let lift1_to_int _pos f parameters handler error a =
       match
         f parameters handler error a
       with
       | error,(handler,int) -> error,handler,int
 
-    let lift2 pos f parameters handler error a b =
+    let lift2_mvbdu_mvbdu_mvbdu
+        pos f parameters handler error a b
+      =
       match
         f parameters handler error parameters a b
       with
@@ -441,7 +456,9 @@ module Make (M:Nul)  =
         in
         error, handler, a
 
-    let lift2bis pos f parameters handler error a b =
+    let lift2_mvbdu_list_mvbdu
+        pos f parameters handler error a b
+      =
       match
         f parameters error  parameters handler a b
       with
@@ -464,7 +481,8 @@ module Make (M:Nul)  =
         in
         error, handler, a
 
-    let lift2five pos f parameters handler error a b =
+    let lift2_association_list_association_list_association_list
+        pos f parameters handler error a b =
       match
         f parameters handler error a b
       with
@@ -485,28 +503,68 @@ module Make (M:Nul)  =
     let mvbdu_unary_false parameters handler error _ =
       mvbdu_false parameters handler error
 
-    let mvbdu_and = lift2 __POS__ Boolean_mvbdu.boolean_mvbdu_and
-    let mvbdu_or = lift2 __POS__ Boolean_mvbdu.boolean_mvbdu_or
-    let mvbdu_xor = lift2 __POS__ Boolean_mvbdu.boolean_mvbdu_xor
-    let mvbdu_nand = lift2 __POS__ Boolean_mvbdu.boolean_mvbdu_nand
-    let mvbdu_nor =  lift2 __POS__ Boolean_mvbdu.boolean_mvbdu_nor
-    let mvbdu_imply =  lift2 __POS__ Boolean_mvbdu.boolean_mvbdu_imply
-    let mvbdu_rev_imply =  lift2 __POS__ Boolean_mvbdu.boolean_mvbdu_is_implied
-    let mvbdu_equiv =  lift2 __POS__ Boolean_mvbdu.boolean_mvbdu_equiv
-    let mvbdu_nimply = lift2 __POS__ Boolean_mvbdu.boolean_mvbdu_nimply
-    let mvbdu_nrev_imply = lift2 __POS__ Boolean_mvbdu.boolean_mvbdu_nis_implied
-    let mvbdu_bi_true = lift2 __POS__ Boolean_mvbdu.boolean_constant_bi_true
-    let mvbdu_bi_false = lift2 __POS__ Boolean_mvbdu.boolean_constant_bi_false
+    let mvbdu_and =
+      lift2_mvbdu_mvbdu_mvbdu
+        __POS__ Boolean_mvbdu.boolean_mvbdu_and
+    let mvbdu_or =
+      lift2_mvbdu_mvbdu_mvbdu
+        __POS__ Boolean_mvbdu.boolean_mvbdu_or
+    let mvbdu_xor =
+      lift2_mvbdu_mvbdu_mvbdu
+        __POS__
+        Boolean_mvbdu.boolean_mvbdu_xor
+    let mvbdu_nand =
+      lift2_mvbdu_mvbdu_mvbdu
+        __POS__ Boolean_mvbdu.boolean_mvbdu_nand
+    let mvbdu_nor =
+      lift2_mvbdu_mvbdu_mvbdu
+        __POS__ Boolean_mvbdu.boolean_mvbdu_nor
+    let mvbdu_imply =
+      lift2_mvbdu_mvbdu_mvbdu
+        __POS__ Boolean_mvbdu.boolean_mvbdu_imply
+    let mvbdu_rev_imply =
+      lift2_mvbdu_mvbdu_mvbdu
+        __POS__ Boolean_mvbdu.boolean_mvbdu_is_implied
+    let mvbdu_equiv =
+      lift2_mvbdu_mvbdu_mvbdu
+        __POS__ Boolean_mvbdu.boolean_mvbdu_equiv
+    let mvbdu_nimply =
+      lift2_mvbdu_mvbdu_mvbdu
+        __POS__ Boolean_mvbdu.boolean_mvbdu_nimply
+    let mvbdu_nrev_imply =
+      lift2_mvbdu_mvbdu_mvbdu
+        __POS__ Boolean_mvbdu.boolean_mvbdu_nis_implied
+    let mvbdu_bi_true =
+      lift2_mvbdu_mvbdu_mvbdu
+        __POS__ Boolean_mvbdu.boolean_constant_bi_true
+    let mvbdu_bi_false =
+      lift2_mvbdu_mvbdu_mvbdu
+        __POS__ Boolean_mvbdu.boolean_constant_bi_false
     let mvbdu_fst _parameters handler error a _b = error,handler,a
     let mvbdu_snd _parameters handler error _a b = error,handler,b
-    let mvbdu_nfst = lift2 __POS__ Boolean_mvbdu.boolean_mvbdu_nfst
-    let mvbdu_nsnd = lift2 __POS__ Boolean_mvbdu.boolean_mvbdu_nsnd
-    let mvbdu_redefine = lift2bis __POS__ Boolean_mvbdu.redefine
-    let mvbdu_redefine_range = lift2bis __POS__ Boolean_mvbdu.redefine_range
+    let mvbdu_nfst =
+      lift2_mvbdu_mvbdu_mvbdu
+        __POS__ Boolean_mvbdu.boolean_mvbdu_nfst
+    let mvbdu_nsnd =
+      lift2_mvbdu_mvbdu_mvbdu
+        __POS__ Boolean_mvbdu.boolean_mvbdu_nsnd
+    let mvbdu_redefine =
+      lift2_mvbdu_list_mvbdu __POS__ Boolean_mvbdu.redefine
+    let mvbdu_redefine_range =
+      lift2_mvbdu_list_mvbdu __POS__ Boolean_mvbdu.redefine_range
 
-    let mvbdu_rename = lift2bis __POS__ Boolean_mvbdu.monotonicaly_rename
-    let mvbdu_project_keep_only = lift2bis __POS__ Boolean_mvbdu.project_keep_only
-    let mvbdu_project_abstract_away = lift2bis __POS__ Boolean_mvbdu.project_abstract_away
+    let mvbdu_rename =
+      lift2_mvbdu_list_mvbdu __POS__ Boolean_mvbdu.monotonicaly_rename
+    let mvbdu_project_keep_only =
+      lift2_mvbdu_list_mvbdu __POS__ Boolean_mvbdu.project_keep_only
+    let mvbdu_project_abstract_away =
+      lift2_mvbdu_list_mvbdu __POS__
+        Boolean_mvbdu.project_abstract_away
+
+    let cut_and_merge =
+      lift2_mvbdu_list_mvbdu __POS__ Boolean_mvbdu.monotonicaly_cut_and_merge
+    let translate =
+      lift2_mvbdu_list_mvbdu __POS__ Boolean_mvbdu.monotonicaly_translate
 
     let build_association_list =
       lift1_association_list_association_list
@@ -598,17 +656,17 @@ module Make (M:Nul)  =
         parameter handler error mvbdu
 
     let extensional_of_association_list parameters handler error l =
-      lift1_five
+      lift1_list_extensional
         __POS__
         Boolean_mvbdu.extensional_description_of_association_list parameters handler error l
 
     let extensional_of_range_list parameters handler error l =
-      lift1_mvbdu_extensional
+      lift1_list_extensional
             __POS__
             Boolean_mvbdu.extensional_description_of_range_list parameters handler error l
 
     let extensional_of_variables_list parameters handler error l =
-      lift1_mvbdu_extensional 
+      lift1_list_extensional
         __POS__
         Boolean_mvbdu.extensional_description_of_variables_list parameters handler error l
 
@@ -683,11 +741,15 @@ module Make (M:Nul)  =
     let merge_variables_lists parameters handler error l1 l2 =
       lift2four __POS__ Boolean_mvbdu.merge_variables_lists parameters handler error l1 l2
 
-    let overwrite_association_lists parameters handler error l1 l2 =
-      lift2five __POS__ Boolean_mvbdu.overwrite_association_lists parameters handler error l1 l2
+    let overwrite_association_lists parameters handler error
+        l1 l2 =
+      lift2_association_list_association_list_association_list
+        __POS__ Boolean_mvbdu.overwrite_association_lists
+        parameters (handler:handler) error l1 l2
 
     let nbr_variables parameter handler error l =
-      lift1_seven "line 539" Boolean_mvbdu.length parameter handler error l
+      lift1_to_int
+        __POS__ Boolean_mvbdu.length parameter handler error l
 
     let store_by_gen get_id get set default join parameters handler error hash_consed_object data storage  =
       let id = get_id hash_consed_object in
@@ -812,19 +874,11 @@ module Internalize(M:Mvbdu
       let _ = check s error error' handler in
       mvbdu
 
-    let lift_binary''' s f x y =
-      let error = Exception.empty_error_handler in
-      let error',handler = get_handler s error in
-      let error',handler,mvbdu = f !parameter handler error' x y in
-      let _ = check s error error' handler in
-      mvbdu
+    let mvbdu_translate =
+      lift_binary __POS__ M.translate
 
-    let lift_binary'''' s f x y =
-      let error = Exception.empty_error_handler in
-      let error',handler = get_handler s error in
-      let error',handler,mvbdu = f !parameter handler error' x y in
-      let _ = check s error error' handler in
-      mvbdu
+    let mvbdu_cut_and_merge =
+      lift_binary __POS__ M.cut_and_merge
 
     let mvbdu_and = lift_binary __POS__ M.mvbdu_and
     let mvbdu_or  = lift_binary __POS__ M.mvbdu_or
@@ -894,14 +948,14 @@ module Internalize(M:Mvbdu
     let empty_variables_list () = build_variables_list []
 
     let merge_variables_lists l1 l2 =
-      lift_binary''' __POS__
+      lift_binary __POS__
         M.merge_variables_lists
         l1 l2
 
     let nbr_variables l = lift_unary __POS__ M.nbr_variables l
 
     let overwrite_association_lists l1 l2 =
-      lift_binary'''' __POS__ M.overwrite_association_lists l1 l2
+      lift_binary __POS__ M.overwrite_association_lists l1 l2
 
     let variables_list_of_mvbdu l =
       lift_unary __POS__ M.variables_list_of_mvbdu l
@@ -1091,6 +1145,9 @@ module Optimize'(M:Internalized_mvbdu with type key = int and type value = int) 
     let hash_of_association_list = M.hash_of_association_list
     let hash_of_variables_list = M.hash_of_variables_list
     let nbr_variables = M.nbr_variables
+
+    let mvbdu_cut_and_merge = M.mvbdu_cut_and_merge
+    let mvbdu_translate = M.mvbdu_translate
 
   end:Internalized_mvbdu)
 

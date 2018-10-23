@@ -4,7 +4,7 @@
    * Jérôme Feret, projet Abstraction, INRIA Paris-Rocquencourt
    *
    * Creation: 08/03/2010
-   * Last modification: Time-stamp: <Jan 01 2017>
+   * Last modification: Time-stamp: <Oct 23 2018>
    * *
    * This library provides test benchmarks for the library of sets of finite maps from integers to integers
    *
@@ -637,61 +637,61 @@ let bdu_test remanent parameters =
     f (Boolean_mvbdu.boolean_mvbdu_nis_implied
          parameters handler error parameters bmvbdu_true0) bmvbdu_false0 in
   let error,handler,bmvbdu_true33 =
-    f (Boolean_mvbdu.clean_head parameters error handler) e' in
+    f (Boolean_mvbdu.clean_head parameters handler error) e' in
   let list = [4,1; 2,2; 1,3] in
   let list' = [2,2; 4,1; 1,3] in
   let error,(handler,list_a) =
     List_algebra.build_list
       (Boolean_mvbdu.association_list_allocate parameters)
-      error
       parameters
       handler
+      error
       list
   in
   let error,(handler,list_b) =
     List_algebra.build_sorted_list
       (Boolean_mvbdu.association_list_allocate parameters)
       parameters
-      error
       handler
+      error
       list
   in
   let error,(handler,list_c) =
     List_algebra.build_reversed_sorted_list
       (Boolean_mvbdu.association_list_allocate parameters)
       parameters
-      error
       handler
+      error
       list
   in
   let error,(handler,list_a') =
     List_algebra.build_list
       (Boolean_mvbdu.association_list_allocate parameters)
-      error
       parameters
       handler
+      error
       list'
   in
   let error,(handler,list_b') =
     List_algebra.build_sorted_list
       (Boolean_mvbdu.association_list_allocate parameters)
       parameters
-      error
       handler
+      error
       list'
   in
   let error,(handler,list_c') =
     List_algebra.build_reversed_sorted_list
       (Boolean_mvbdu.association_list_allocate parameters)
       parameters
-      error
       handler
+      error
       list'
   in
   let error,handler,mvbdu =
     f (Boolean_mvbdu.redefine parameters error parameters handler l') list_a in
   let error,handler,l''' =
-    f (Boolean_mvbdu.clean_head parameters error handler) l'' in
+    f (Boolean_mvbdu.clean_head parameters handler error) l'' in
   let error =
     Boolean_mvbdu.print_boolean_mvbdu
       (Remanent_parameters.update_prefix parameters "l': ")

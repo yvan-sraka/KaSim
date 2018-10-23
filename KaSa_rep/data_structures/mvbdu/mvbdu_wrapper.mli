@@ -4,7 +4,7 @@
    * Jérôme Feret, projet Abstraction, INRIA Paris-Rocquencourt
    *
    * Creation: 08/03/2010
-   * Last modification: Time-stamp: <Oct 22 2018>
+   * Last modification: Time-stamp: <Oct 23 2018>
    * *
    * This library provides test benchmarks for the library of sets of finite maps from integers to integers
    *
@@ -150,7 +150,7 @@ module type Mvbdu =
     val translate:
       (mvbdu,hconsed_association_list,mvbdu)
         binary
-    val cut_and_clean:
+    val cut_and_merge:
       (mvbdu,hconsed_range_list,mvbdu)
         binary
 
@@ -214,8 +214,8 @@ module type Internalized_mvbdu =
     val mvbdu_of_sorted_range_list: (key * (value option * value option)) list -> mvbdu
     val mvbdu_of_reverse_sorted_range_list: (key * (value option * value option)) list -> mvbdu
 
-    val mbvdu_translate: mvbdu -> hconsed_association_list -> mvbdu
-    val mvbdu_cut_and_clean: mvbdu -> hconsed_renaming_list -> mvbdu
+    val mvbdu_translate: mvbdu -> hconsed_association_list -> mvbdu
+    val mvbdu_cut_and_merge: mvbdu -> hconsed_range_list -> mvbdu
 
     val mvbdu_rename: mvbdu -> hconsed_renaming_list -> mvbdu
     val mvbdu_project_abstract_away: mvbdu -> hconsed_variables_list -> mvbdu

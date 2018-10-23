@@ -117,8 +117,8 @@ type memo_tables =
 
     boolean_mvbdu_extensional_description_of_mvbdu: (int *int ) list list Hash_1.t;
 
-    boolean_mvbdu_translate: bool Mvbdu_sig.mvbdu Hash_2.t;
-    boolean_mvbdu_cut_and_merge: bool Mvbdu_sig.mvbdu Hash_2.t;
+    boolean_mvbdu_monotonicaly_translate: bool Mvbdu_sig.mvbdu Hash_2.t;
+    boolean_mvbdu_monotonicaly_cut_and_merge: bool Mvbdu_sig.mvbdu Hash_2.t;
   }
 
 type mvbdu_dic = (bool Mvbdu_sig.cell, bool Mvbdu_sig.mvbdu) D_mvbdu_skeleton.dictionary
@@ -167,8 +167,8 @@ let split_memo error handler =
     "rename:",  x.boolean_mvbdu_monotonicaly_rename;
     "project_onto:", x.boolean_mvbdu_project_keep_only;
     "project_away:", x.boolean_mvbdu_project_abstract_away;
-    "translate", x.boolean_mvbdu_translate;
-    "cut_and_merge", x.boolean_mvbdu_cut_and_merge],
+    "translate", x.boolean_mvbdu_monotonicaly_translate;
+    "cut_and_merge", x.boolean_mvbdu_monotonicaly_cut_and_merge],
   [ (* _ -> variables_list *)
     "variables_of:", x.boolean_mvbdu_variables_of_mvbdu;
   ],
@@ -305,8 +305,8 @@ let init_data parameters error =
       mvbdu_extensional_range_list;
     boolean_mvbdu_variables_of_mvbdu = mvbdu_variables_of;
     boolean_mvbdu_extensional_description_of_mvbdu = mvbdu_extensional_description_of_mvbdu;
-    boolean_mvbdu_cut_and_merge = mvbdu_cut_and_merge;
-    boolean_mvbdu_translate = mvbdu_translate;
+    boolean_mvbdu_monotonicaly_cut_and_merge = mvbdu_cut_and_merge;
+    boolean_mvbdu_monotonicaly_translate = mvbdu_translate;
   }
 
 let init_remanent parameters error =
@@ -876,6 +876,35 @@ let monotonicaly_rename parameters error handler mvbdu_input list_input =
        })
     parameters error handler mvbdu_input list_input
 
+let monotonicaly_translate parameters error handler mvbdu_input list_input =
+  gen_bin_mvbdu_list
+    Mvbdu_algebra.monotonicaly_rename
+    (fun x -> x.Memo_sig.data.boolean_mvbdu_monotonicaly_translate)
+    (fun x h ->
+       {
+         h with Memo_sig.data =
+                  {
+                    h.Memo_sig.data with boolean_mvbdu_monotonicaly_translate = x
+                      }
+           })
+        parameters error handler mvbdu_input list_input
+
+let monotonicaly_cut_and_merge
+    parameters error handler mvbdu_input list_input =
+  gen_bin_mvbdu_list
+    Mvbdu_algebra.monotonicaly_cut_and_merge
+    (fun x -> x.Memo_sig.data.boolean_mvbdu_monotonicaly_cut_and_merge)
+    (fun x h ->
+       {
+         h with Memo_sig.data =
+                  {
+                    h.Memo_sig.data with
+                    boolean_mvbdu_monotonicaly_cut_and_merge = x
+                  }
+       })
+    parameters error handler mvbdu_input list_input
+
+
 let project_keep_only parameters error handler mvbdu_input list_input =
   gen_bin_mvbdu_list
     (fun a b -> Mvbdu_algebra.project_keep_only a b boolean_mvbdu_true)
@@ -902,7 +931,7 @@ let project_abstract_away parameters error handler mvbdu_input list_input =
        })
     parameters error handler mvbdu_input list_input
 
-let merge_variables_lists parameters error handler list1 list2 =
+let merge_variables_lists parameters handler error list1 list2 =
   List_algebra.overwrite
     (variables_list_allocate parameters)
     (fun parameter error handler (x1,x2) ->
@@ -930,7 +959,7 @@ let merge_variables_lists parameters error handler list1 list2 =
     list1
     list2
 
-let length parameters error handler list =
+let length parameters handler error list =
   List_algebra.length
     (variables_list_allocate parameters)
     (fun parameter error handler x ->
@@ -954,7 +983,7 @@ let length parameters error handler list =
        })
     error parameters handler list
 
-let overwrite_association_lists parameters error handler list1 list2 =
+let overwrite_association_lists parameters handler error list1 list2 =
   List_algebra.overwrite
     (association_list_allocate parameters)
     (fun parameter error handler (x1,x2) ->
@@ -1101,14 +1130,16 @@ let rec variables_of_mvbdu parameters handler error mvbdu =
             | Some list_f, Some list_t ->
               begin
                 let error, (handler, list_sibblings) =
-                  merge_variables_lists parameters error handler
+                  merge_variables_lists
+                    parameters handler error
                     list_f
                     list_t
                 in
                 let error, (handler,output) =
                   match list_sibblings with
                   | Some list_s ->
-                    merge_variables_lists parameters error handler
+                    merge_variables_lists
+                      parameters handler error
                       singleton
                       list_s
                   | None ->
