@@ -72,9 +72,6 @@ sig
     prod -> var -> Exception.method_handler *
                    (Fraction.ffraction * Fraction.ffraction) option
 
-
-  val is_infinite:prod->var->bool
-
   val union:
     Remanent_parameters_sig.parameters ->
     Exception.method_handler ->

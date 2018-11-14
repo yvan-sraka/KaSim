@@ -79,7 +79,7 @@ sig
                    (Fraction.ffraction * Fraction.ffraction) option
 
 
-  val is_infinite:prod->var->bool
+  (*val is_infinite:prod->var->bool*)
   val union:
     Remanent_parameters_sig.parameters ->
     Exception.method_handler ->

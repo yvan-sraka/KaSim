@@ -1,6 +1,7 @@
 type fraction={num:int;den:int}
 type ffraction=Frac of fraction| Infinity | Unknown | Minfinity
 
+let of_int x = {num=x;den=1}
 let trunc a =
   match a with
   | Frac{num=x;den=y}->x/y
