@@ -173,6 +173,17 @@ Kappapp.tar.gz:
 	tar czf $@ Kappapp
 	rm -r Kappapp
 
+flatpack-TODO:
+	+$(MAKE) clean
+	+$(MAKE) APP_EXT=local site/index.html
+	dune build --only-packages kappa-library,kappa-binaries,kappa-agents
+	mkdir Kappapp
+	mv site Kappapp/app
+	mkdir Kappapp/bin
+	cp bin/* Kappapp/bin/
+	cp ide/org.kappa.app.json Kappapp/flatpack/
+	# TODO
+
 KappaBin.zip:
 	+$(MAKE) clean
 	+$(MAKE) APP_EXT=local site/index.html
