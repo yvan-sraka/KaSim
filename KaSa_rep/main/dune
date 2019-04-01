@@ -1,6 +1,6 @@
 (library
   (name kappa_staticanalyses)
-  (libraries unix kappa_species_count_enumeration kappa_reachability kappa_influence_map kappa_kasa_export)
+  (libraries unix kappa_species_count_enumeration kappa_reachability kappa_influence_map kappa_kasa_export kappa_logic_encoding)
   (modules (:standard \ KaSa))
   (flags (:standard -w @a
   	 -open Kappa_generic_toolset
@@ -26,12 +26,12 @@
      -open Kappa_influence_map
      -open Kappa_kasa_export
      -open Kappa_kasa_type_interface
-     )))
+     -open Kappa_logic_encoding)))
 
 
 (executable
   (name KaSa)
-  (libraries num yojson str kappa_staticanalyses kappa_kasa_frontend)
+  (libraries num yojson str kappa_staticanalyses kappa_kasa_frontend kappa_logic_encoding)
   (modules KaSa)
   (public_name KaSa)
   (package kappa-binaries)
@@ -43,4 +43,5 @@
   -open Kappa_staticanalyses
   -open Kappa_kasa_frontend
   -open Kappa_kasa_export
-  -open Kappa_kasa_type_interface)))
+  -open Kappa_kasa_type_interface
+  -open Kappa_logic_encoding)))

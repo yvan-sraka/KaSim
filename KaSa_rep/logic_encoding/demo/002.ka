@@ -1,0 +1,13 @@
+/* Signatures */
+%agent: A(x{u p}) // Declaration of agent A with 1 modifiable site x
+
+/* Rules */
+A(x[./1]), A(x[./1]) @k // A binds A
+
+/* Variables */
+%var: k 1.0E-3 // per molecule per second
+%var: n 1000
+
+/* Initial conditions */
+%init: n A(x{u})
+%init: n A(x{p})

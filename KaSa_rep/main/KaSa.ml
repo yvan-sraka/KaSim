@@ -173,6 +173,10 @@ let main () =
       state
   in
   (*-----------------------------------------------------------------------*)
+  (*WORK IN PROCESS: Logic encoding*)
+  let handler, _, _, _  = Export_to_KaSa.get_data state in
+  Kappa_logic_encoding.Logic_encoding.main (* parameters *) (* error *) handler (* state *);
+  (*-----------------------------------------------------------------------*)
   (*Stochastic flow of information*)
   let state, _stochastic_flow_opt =
     if Remanent_parameters.get_do_stochastic_flow_of_information parameters

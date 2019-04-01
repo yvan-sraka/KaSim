@@ -1115,3 +1115,44 @@ module IntMvbdu = Internalize(Make(Vd))
 module Optimized_Mvbdu = Optimize(Make(Vd))
 module Optimized_IntMvbdu = Internalize(Optimize(Make (Vd)))
 module Optimized_IntMvbdu_bis = Optimize_internalized(Internalize(Make(Vd)))
+
+
+(** This is a generalized version of MVBDU which take any type as key and value
+  *****************************************************************************)
+
+module type Generalized_mvbdu =
+sig
+  include Internalized_mvbdu
+  (* val getKey: 'a -> int *)
+  (* TODO: val getValue : 'b -> int *)
+end
+
+module Generalize
+    (M : Internalized_mvbdu with type key = int and type value = int) :
+  Generalized_mvbdu
+  with type mvbdu = M.mvbdu
+   and type key = int (* TODO: 'a *)
+   and type value = int (* TODO: 'b *)
+=
+struct
+  (* module IntMapKey = Map.Make (struct
+    type t = int
+    let compare = compare
+  end) *)
+
+  (* From https://stackoverflow.com/questions/10131779/ocaml-map-of-int-keys-where-is-the-simple-int-module-to-use-with-the-map-ma *)
+  (* module IntMapvalue = Map.Make(struct type t = int let compare = compare end) *)
+  (* let m = ref IntMapKey.empty
+  let key = ref 0 *)
+
+  (* let rec getKey (_ value : 'a) : int = 0 *)
+    (* try IntMapKey.find value !m (* TODO Error: IntMapKey.find take a key and not a value *)
+    with _ ->
+      m := IntMapKey.add !key value !m ;
+      key := !key + 1 ;
+      getKey value *)
+
+  (* TODO: How to map int to lemma? *)
+  module Internalized_mvbdu = M
+  include Internalized_mvbdu
+end

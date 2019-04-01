@@ -46,3 +46,8 @@ val compute_scc :
   ('a, 'b) graph ->
   Exception.method_handler * int Nodearray.t * int Nodearray.t *
   bool Nodearray.t * Nodearray.key list list
+
+(* TODO: Used in logic encoding, construct agents ids as list of tuple of “path from anchor” and “path to anchor” *)
+val paths_from_anchor :
+  (* TODO: (string, string) graph -> node -> (string * string) list list *)
+  (string, string) graph -> node -> node list

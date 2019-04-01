@@ -272,3 +272,21 @@ module IntMvbdu:Internalized_mvbdu with type key = int and type value = int and 
 module Optimized_Mvbdu:Mvbdu with type key = int and type value = int
 module Optimized_IntMvbdu:Internalized_mvbdu with type key = int and type value = int
 module Optimized_IntMvbdu_bis:Internalized_mvbdu with type key = int and type value = int
+
+
+(** This is a generalized version of MVBDU which take any type as key and value
+  *****************************************************************************)
+
+module type Generalized_mvbdu = sig
+  include Internalized_mvbdu
+
+  (* val getKey : 'a -> int *)
+  (* TODO: val getValue : 'b -> int *)
+end
+
+module Generalize
+    (M : Internalized_mvbdu with type key = int and type value = int) :
+  Generalized_mvbdu
+  with type mvbdu = M.mvbdu
+   and type key = int (* TODO: 'a *)
+   and type value = int (* TODO: 'b *)

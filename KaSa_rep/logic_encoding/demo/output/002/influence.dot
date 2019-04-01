@@ -1,0 +1,16 @@
+#This file has been computed by KaSa: a Static Analyzer for Kappa (Kappa Static Analyzer (v4.0rc1-433-gdfab24dbe-dirty))
+#Download sources/binaries at https://github.com/Kappa-Dev/KaSim
+#
+#Analysis launched at 2019/05/13 09:13:19 (GMT+2) on macbook
+#Command line is: KaSa KaSa_rep/logic_encoding/demo/002.ka --output-directory KaSa_rep/logic_encoding/demo/output/002
+#
+#This file contains the description of the influence map in dot.
+#Please use graphviz (http://www.graphviz.org) or OmniGraffle to export it to a PDF
+#
+digraph G{
+"0:A(x[.]),A(x[.])->A(x[1]),A(x[1])" [shape=box fillcolor="#87ceeb" style=filled];
+
+"k" [shape=ellipse fillcolor="#98fb98" style=filled];
+"n" [shape=ellipse fillcolor="#98fb98" style=filled];
+"0:A(x[.]),A(x[.])->A(x[1]),A(x[1])" -> "0:A(x[.]),A(x[.])->A(x[1]),A(x[1])" [label="[0->1];[1->0]" color="red" arrowhead="tee"];
+}

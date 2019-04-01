@@ -383,3 +383,29 @@ let add_bridges
     Nodearray.free_all parameters error scc
   in
   error, low, pre, on_stack, scc, bridges
+
+
+(** Used in logic encoding, construct agents ids as list of tuple of “path from anchor” and “path to anchor” *)
+
+(* TODO: type doublyLinkedPath = (string * string) list *)
+
+module NodeSet = Set.Make (struct
+  type t = node
+
+  let compare = compare
+end)
+
+let paths_from_anchor (_ (* g *) : (string, string) graph) (anchor : node) :
+    (* TODO: doublyLinkedPath *) node list =
+  let rec dfs _ (* current *) visited path =
+    let dfs_child (visited, path) current =
+      if not (NodeSet.mem current visited) then
+        dfs current (NodeSet.add current visited) (current :: path)
+      else (visited, path)
+    in
+    List.fold_left dfs_child (visited, path) (* TODO: (g.edges current) *) [anchor]
+  in
+  let _, paths =
+    dfs anchor (NodeSet.singleton anchor) (* TODO: g.node_labels *) [anchor]
+  in
+  (* TODO: *) paths

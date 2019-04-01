@@ -1,0 +1,12 @@
+(library
+  (name kappa_logic_encoding)
+  (libraries kappa_kasa_remanent_state)
+  (flags (:standard)
+    -open Kappa_errors
+    -open Kappa_kasa_frontend
+    -open Kappa_kasa_kastor_toolset
+    -open Kappa_kasa_remanent_state
+    -open Kappa_logging
+    -open Kappa_mvbdu
+    -open Kappa_parameters
+))
