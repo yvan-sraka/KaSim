@@ -1,0 +1,57 @@
+diff --git a/Makefile b/Makefile
+index 33185f2c5..b32f20e9a 100644
+--- a/Makefile
++++ b/Makefile
+@@ -15,15 +15,10 @@ SCRIPTSSOURCE = $(wildcard $(MANSCRIPTREP)*.sh)
+ SCRIPTSWITNESS = $(SCRIPTSSOURCE:.sh=.witness) $(MANGENREP)version.tex
+ MODELS = $(wildcard $(MANKAPPAMODELSREP)*.ka)
+ 
+-RESOURCES_HTML=$(wildcard shared/*.js) $(wildcard viz/*.js) $(wildcard viz/*.css) js/favicon.ico js/package.json
++RESOURCES_HTML=$(wildcard shared/*.js) $(wildcard viz/*.js) $(wildcard viz/*.css) js/favicon.ico js/package.json js/package-lock.json
+ 
+ APP_EXT?=cdn
+ INDEX_HTML=js/use-$(APP_EXT).html
+-ifeq ($(APP_EXT),local)
+-SITE_EXTRAS= site/external site/external/bootstrap-$(BOOTSTRAP_VERSION)-dist site/external/codemirror-$(CODEMIRROR_VERSION) site/external/dagre-d3 site/external/d3 site/external/jquery
+-else
+-SITE_EXTRAS=
+-endif
+ 
+ .PHONY: all agents clean check build-tests doc clean_doc debug
+ .PHONY: temp-clean-for-ignorant-that-clean-must-be-done-before-fetch
+@@ -47,33 +42,10 @@ site: $(RESOURCES_HTML)
+ 	mkdir -p $@
+ 	cp $^ $@
+ 
+-site/external: site
+-	mkdir -p $@
+-
+-site/external/bootstrap-$(BOOTSTRAP_VERSION)-dist: externals.mk
+-	FILE=$$(mktemp -t bootstrapXXXX); \
+-	curl -LsS -o $$FILE https://github.com/twbs/bootstrap/releases/download/v$(BOOTSTRAP_VERSION)/bootstrap-$(BOOTSTRAP_VERSION)-dist.zip && \
+-	rm -rf $@ && unzip -d $(dir $@) $$FILE && rm $$FILE
+-	touch $@
++SITE_EXTRAS: site/external
+ 
+-site/external/codemirror-$(CODEMIRROR_VERSION): externals.mk
+-	FILE=$$(mktemp -t codemirrorXXXX); \
+-	curl -LsS -o $$FILE http://codemirror.net/codemirror-$(CODEMIRROR_VERSION).zip &&\
+-	rm -rf $@ && unzip -d $(dir $@) $$FILE && rm $$FILE
+-	touch $@
+-
+-site/external/d3: externals.mk
+-	mkdir -p $@
+-	curl -LsS -o $@/d3.v4.min.js http://d3js.org/d3.v4.min.js
+-
+-site/external/dagre-d3: externals.mk
+-	mkdir -p $@
+-	curl -LsS -o $@/dagre-d3.min.js https://dagrejs.github.io/project/dagre-d3/latest/dagre-d3.min.js
+-
+-site/external/jquery: externals.mk
++site/external: site
+ 	mkdir -p $@
+-	curl -LsS -o site/external/jquery/jquery.js https://code.jquery.com/jquery-$(JQUERY_VERSION).min.js
+-	curl -LsS -o site/external/jquery/jquery-ui.min.js http://code.jquery.com/ui/$(JQUERY_UI_VERSION)/jquery-ui.min.js
+ 
+ %.bc.js: $(filter-out _build/,$(wildcard */*.ml*))
+ 	dune build $@
